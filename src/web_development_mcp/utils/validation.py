@@ -5,7 +5,6 @@ Provides functions for validating project names, paths, and other inputs.
 """
 
 import re
-import sys
 import platform
 import subprocess
 from pathlib import Path
@@ -120,7 +119,7 @@ def validate_package_name(name: str) -> Tuple[bool, str]:
             return False, "Invalid scoped package name format. Expected: @scope/name"
         
         scope = parts[0][1:]  # Remove @
-        pkg_name = parts[1]
+        pkg_name = parts[1]  # noqa: F841
         
         if not re.match(PACKAGE_NAME_PATTERN, scope):
             return False, "Invalid scope name"

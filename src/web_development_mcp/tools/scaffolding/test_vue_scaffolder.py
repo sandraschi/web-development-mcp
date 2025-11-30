@@ -5,7 +5,6 @@ This script tests the VueScaffolder implementation by creating a test project
 and verifying the generated files and structure.
 """
 
-import os
 import shutil
 import tempfile
 import unittest

@@ -7,26 +7,14 @@ Handles creation of new projects with modern frameworks and best practices.
 import json
 import logging
 import re
-import shutil
-import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Optional
 
 from ..utils.file_operations import (
-    create_directory,
-    create_file,
-    read_file,
-    write_file,
-    copy_file,
-    path_exists,
-    is_empty_directory,
-    create_directory_structure,
-    write_json_file,
-    read_json_file
+    write_file
 )
 
-from ..utils.template_engine import process_template, process_template_file
-from ..utils.validation import is_valid_project_name, validate_project_path
+from ..utils.template_engine import process_template_file
 
 logger = logging.getLogger(__name__)
 
@@ -257,7 +245,6 @@ def register_tools(mcp):
 
 def _is_valid_project_name(name: str) -> bool:
     """Validate project name follows npm naming conventions."""
-    import re
     # npm package name rules
     pattern = r'^[a-z0-9]([a-z0-9\-])*[a-z0-9]$|^[a-z0-9]$'
     return bool(re.match(pattern, name)) and len(name) <= 214

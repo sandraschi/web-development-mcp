@@ -5,7 +5,7 @@ Handles smart component creation with best practices and Austrian dev standards.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from pathlib import Path
 
 logger = logging.getLogger(__name__)

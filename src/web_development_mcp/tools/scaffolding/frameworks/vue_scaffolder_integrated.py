@@ -4,11 +4,9 @@ Integrated Vue 3 project scaffolding implementation.
 This module combines all Vue 3 scaffolding functionality into a single module.
 """
 
-import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, List, Optional
-import shutil
+from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
 

@@ -4,14 +4,11 @@ File operations utilities for the Web Development MCP.
 Provides functions for working with files and directories in a cross-platform way.
 """
 
-import os
 import shutil
 import json
-import stat
-import fnmatch
-import hashlib
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, BinaryIO, TextIO, Iterator, Generator, Callable, Pattern
+from string import Template
+from typing import Any, Dict, List, Optional, Union, Generator
 from dataclasses import dataclass
 
 @dataclass

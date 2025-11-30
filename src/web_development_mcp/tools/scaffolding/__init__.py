@@ -5,7 +5,7 @@ This package contains framework-specific scaffolding implementations.
 """
 
 from pathlib import Path
-from typing import Dict, Any, Protocol, Optional, List
+from typing import Dict, Any, Protocol, List
 import logging
 
 logger = logging.getLogger(__name__)

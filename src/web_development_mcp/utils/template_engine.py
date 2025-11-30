@@ -4,19 +4,19 @@ Template engine utilities for the Web Development MCP.
 Provides functions for processing templates with variable substitution using Jinja2.
 """
 
-import re
+import fnmatch
 import json
 import logging
+import os
 import shutil
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union, Type, Callable, TypeVar
 from dataclasses import dataclass, field
-from string import Template
 from functools import lru_cache
 
 from jinja2 import (
     Environment, FileSystemLoader, StrictUndefined, TemplateError, 
-    TemplateNotFound, TemplateSyntaxError, UndefinedError, select_autoescape
+    TemplateNotFound, TemplateSyntaxError, select_autoescape
 )
 from jinja2.ext import Extension
 

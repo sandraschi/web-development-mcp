@@ -8,8 +8,7 @@ Vite, and other modern tooling.
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, List, Tuple
-import shutil
+from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
@@ -33,13 +32,13 @@ class ReactScaffolder:
             ReactScaffolder._create_project_structure(project_path, options)
             
             # Create package.json
-            package_json = ReactScaffolder._create_package_json(project_name, options)
+            _package_json = ReactScaffolder._create_package_json(project_name, project_path, options)  # noqa: F841
             
             # Create config files
             ReactScaffolder._create_config_files(project_path, options)
             
             # Create initial components
-            ReactScaffolder._create_components(project_path, options)
+            ReactScaffolder._create_components(project_path, options, project_name)
             
             return {
                 "success": True,
@@ -103,7 +102,7 @@ class ReactScaffolder:
             (project_path / 'src/__tests__').mkdir(exist_ok=True)
     
     @staticmethod
-    def _create_package_json(project_name: str, options: Dict[str, Any]) -> Dict[str, Any]:
+    def _create_package_json(project_name: str, project_path: Path, options: Dict[str, Any]) -> Dict[str, Any]:
         """Create package.json for a React project."""
         package_json = {
             "name": project_name,
@@ -345,7 +344,7 @@ export default defineConfig({
             json.dump(eslint_config, f, indent=2)
     
     @staticmethod
-    def _create_components(project_path: Path, options: Dict[str, Any]) -> None:
+    def _create_components(project_path: Path, options: Dict[str, Any], project_name: str = "React App") -> None:
         """Create initial React components."""
         # Create App.tsx
         app_tsx = """import { useState } from 'react';

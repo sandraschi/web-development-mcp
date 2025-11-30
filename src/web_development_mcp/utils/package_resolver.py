@@ -6,6 +6,7 @@ Provides functions for resolving package versions and checking compatibility.
 
 import json
 import logging
+import re
 import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union, Any

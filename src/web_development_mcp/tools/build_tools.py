@@ -6,7 +6,7 @@ Handles Vite, TypeScript, ESLint, and other build tool configurations.
 
 import logging
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -381,21 +381,21 @@ export default defineConfig({{
             
             if test_runner == "vitest":
                 # Create vitest.config.ts
-                vitest_config = f"""import {{ defineConfig }} from 'vitest/config';
-import {{ resolve }} from 'path';
+                vitest_config = """import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
 
-export default defineConfig({{
-  test: {{
+export default defineConfig({
+  test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     globals: true
-  }},
-  resolve: {{
-    alias: {{
+  },
+  resolve: {
+    alias: {
       '@': resolve(__dirname, 'src')
-    }}
-  }}
-}});
+    }
+  }
+});
 """
                 
                 with open(path / "vitest.config.ts", 'w', encoding='utf-8') as f:

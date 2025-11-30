@@ -8,8 +8,7 @@ Vite, and other modern tooling.
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, List, Optional
-import shutil
+from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +32,7 @@ class VueScaffolder:
             VueScaffolder._create_project_structure(project_path, options)
             
             # Create package.json
-            package_json = VueScaffolder._create_package_json(project_name, project_path, options)
+            _package_json = VueScaffolder._create_package_json(project_name, project_path, options)  # noqa: F841
             
             # Create config files
             VueScaffolder._create_config_files(project_path, options)

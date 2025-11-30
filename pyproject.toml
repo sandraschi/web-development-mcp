@@ -36,6 +36,13 @@ line_length = 100
 [tool.hatch.build.targets.wheel]
 packages = ["src/web_development_mcp"]
 
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+ignore = ["E402"]  # Allow imports not at top of file (needed for FastMCP pattern)
+
 [tool.mypy]
 python_version = "3.9"
 warn_return_any = true
