@@ -1,0 +1,54 @@
+import { useState } from 'react';
+import './App.css';
+{% if router %}
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+
+// Import your pages here
+import HomePage from './pages/HomePage';
+import AboutPage from './pages/AboutPage';
+{% endif %}
+
+function App() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div className="app">
+      {% if router %}
+      <Router>
+        <nav>
+          <ul>
+            <li><Link to="/">Home</Link></li>
+            <li><Link to="/about">About</Link></li>
+          </ul>
+        </nav>
+        
+        <main>
+          <Routes>
+            <Route path="/" element={
+              <HomePage count={count} onIncrement={() => setCount(c => c + 1)} />
+            } />
+            <Route path="/about" element={<AboutPage />} />
+          </Routes>
+        </main>
+      </Router>
+      {% else %}
+      <div>
+        <h1>Welcome to {{project_name}}</h1>
+        <div className="card">
+          <button onClick={() => setCount((count) => count + 1)}>
+            Count is {count}
+          </button>
+          <p>
+            Edit <code>src/App.tsx</code> and save to test HMR
+          </p>
+        </div>
+        <p className="read-the-docs">
+          Click on the Vite and React logos to learn more
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  );
+}
+
+export default App;

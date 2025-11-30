@@ -10,7 +10,7 @@ authors = [
     {name = "Sandra", email = "sandra@example.com"}
 ]
 dependencies = [
-    "fastmcp>=2.10.0",
+    "fastmcp>=2.13.0",
 ]
 
 [project.optional-dependencies]

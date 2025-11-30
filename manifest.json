@@ -1,0 +1,29 @@
+{
+  "name": "web-development-mcp",
+  "version": "1.0.0",
+  "description": "Universal web development operations MCP server supporting modern frontend frameworks (React, Vue, SvelteKit, Next.js, Vite) and tooling - 27 tools for scaffolding, packages, builds, and components",
+  "author": "Sandra",
+  "license": "MIT",
+  "repository": "https://github.com/sandraschi/web-development-mcp",
+  "tools": [
+    "scaffold_react",
+    "scaffold_vue",
+    "scaffold_sveltekit",
+    "scaffold_nextjs",
+    "scaffold_vite",
+    "install_packages",
+    "update_packages",
+    "remove_packages",
+    "build_project",
+    "dev_server",
+    "create_component",
+    "update_component",
+    "and 16 more portmanteau operations"
+  ],
+  "entry": "web_development_mcp/mcp_server.py",
+  "python_version": ">=3.9",
+  "dependencies": {
+    "fastmcp": ">=2.13.0"
+  }
+}
+

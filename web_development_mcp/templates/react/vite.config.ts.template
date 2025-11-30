@@ -1,0 +1,46 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+    },
+  },
+  
+  server: {
+    port: {{port|default(5173)}},
+    open: true,
+    host: true
+  },
+  
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    minify: 'terser',
+    target: 'esnext',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          {% if router %}
+          router: ['react-router-dom'],
+          {% endif %}
+        },
+      },
+    },
+  },
+  
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.ts',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+    },
+  },
+});
