@@ -1,0 +1,120 @@
+import { Moon, Sun, Bell, Search, User, LogOut, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
+
+interface TopbarProps {
+  theme: 'light' | 'dark';
+  onThemeToggle: () => void;
+  onNotificationsClick?: () => void;
+  onSettingsClick?: () => void;
+  onLogout?: () => void;
+  userName?: string;
+  userEmail?: string;
+  notificationCount?: number;
+}
+
+export function Topbar({
+  theme,
+  onThemeToggle,
+  onNotificationsClick,
+  onSettingsClick,
+  onLogout,
+  userName = 'User',
+  userEmail = 'user@example.com',
+  notificationCount = 0,
+}: TopbarProps) {
+  return (
+    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* Search */}
+      <div className="flex-1">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search..."
+            className="w-full pl-10 bg-muted/50 border-0 focus-visible:ring-1"
+          />
+          <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+        </div>
+      </div>
+
+      {/* Right side actions */}
+      <div className="flex items-center gap-2">
+        {/* Theme Toggle */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onThemeToggle}
+          className="relative"
+          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+        >
+          <Sun className={cn(
+            'h-5 w-5 transition-all',
+            theme === 'dark' ? 'rotate-0 scale-100' : 'rotate-90 scale-0'
+          )} />
+          <Moon className={cn(
+            'absolute h-5 w-5 transition-all',
+            theme === 'light' ? 'rotate-0 scale-100' : '-rotate-90 scale-0'
+          )} />
+        </Button>
+
+        {/* Notifications */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onNotificationsClick}
+          className="relative"
+          aria-label="Notifications"
+        >
+          <Bell className="h-5 w-5" />
+          {notificationCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-destructive-foreground">
+              {notificationCount > 99 ? '99+' : notificationCount}
+            </span>
+          )}
+        </Button>
+
+        {/* User Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <User className="h-5 w-5" />
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{userName}</p>
+                <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onSettingsClick}>
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onLogout} className="text-destructive focus:text-destructive">
+              <LogOut className="mr-2 h-4 w-4" />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
+  );
+}
+

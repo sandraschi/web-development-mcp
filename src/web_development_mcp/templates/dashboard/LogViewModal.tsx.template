@@ -1,0 +1,294 @@
+import { useState, useEffect, useRef } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Search,
+  Download,
+  Trash2,
+  RefreshCw,
+  Pause,
+  Play,
+  Filter,
+  Copy,
+  Check,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface LogEntry {
+  id: string;
+  timestamp: Date;
+  level: 'debug' | 'info' | 'warn' | 'error';
+  message: string;
+  source?: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface LogViewModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  logs?: LogEntry[];
+  onClearLogs?: () => void;
+  onRefresh?: () => void;
+}
+
+const levelColors = {
+  debug: 'bg-slate-500/20 text-slate-600 dark:text-slate-400',
+  info: 'bg-blue-500/20 text-blue-600 dark:text-blue-400',
+  warn: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400',
+  error: 'bg-red-500/20 text-red-600 dark:text-red-400',
+};
+
+const levelIcons = {
+  debug: '🔍',
+  info: 'ℹ️',
+  warn: '⚠️',
+  error: '❌',
+};
+
+// Demo logs for preview
+const demoLogs: LogEntry[] = [
+  { id: '1', timestamp: new Date(), level: 'info', message: 'Application started successfully', source: 'System' },
+  { id: '2', timestamp: new Date(Date.now() - 1000), level: 'debug', message: 'Loading user preferences...', source: 'UserService' },
+  { id: '3', timestamp: new Date(Date.now() - 2000), level: 'info', message: 'Connected to database', source: 'Database' },
+  { id: '4', timestamp: new Date(Date.now() - 5000), level: 'warn', message: 'Rate limit approaching (80%)', source: 'API' },
+  { id: '5', timestamp: new Date(Date.now() - 10000), level: 'error', message: 'Failed to fetch user data: Network timeout', source: 'UserService' },
+  { id: '6', timestamp: new Date(Date.now() - 15000), level: 'info', message: 'Cache invalidated for key: user_123', source: 'Cache' },
+  { id: '7', timestamp: new Date(Date.now() - 20000), level: 'debug', message: 'WebSocket connection established', source: 'WebSocket' },
+  { id: '8', timestamp: new Date(Date.now() - 30000), level: 'info', message: 'Background job completed: cleanup_old_sessions', source: 'JobRunner' },
+];
+
+export function LogViewModal({ open, onOpenChange, logs = demoLogs, onClearLogs, onRefresh }: LogViewModalProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [levelFilter, setLevelFilter] = useState<string>('all');
+  const [isPaused, setIsPaused] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const filteredLogs = logs.filter((log) => {
+    const matchesSearch =
+      log.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.source?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesLevel = levelFilter === 'all' || log.level === levelFilter;
+    return matchesSearch && matchesLevel;
+  });
+
+  const formatTimestamp = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+  };
+
+  const handleCopyLog = async (log: LogEntry) => {
+    const text = `[${formatTimestamp(log.timestamp)}] [${log.level.toUpperCase()}] ${log.source ? `[${log.source}] ` : ''}${log.message}`;
+    await navigator.clipboard.writeText(text);
+    setCopiedId(log.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleExport = () => {
+    const content = filteredLogs
+      .map((log) => `[${formatTimestamp(log.timestamp)}] [${log.level.toUpperCase()}] ${log.source ? `[${log.source}] ` : ''}${log.message}`)
+      .join('\n');
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `logs_${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Auto-scroll to bottom when new logs arrive
+  useEffect(() => {
+    if (!isPaused && scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [logs, isPaused]);
+
+  const levelCounts = logs.reduce(
+    (acc, log) => {
+      acc[log.level] = (acc[log.level] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="text-xl flex items-center gap-2">
+            Log Viewer
+            <Badge variant="outline" className="ml-2 font-mono">
+              {filteredLogs.length} entries
+            </Badge>
+          </DialogTitle>
+          <DialogDescription>
+            Real-time application logs with filtering and search capabilities.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-center gap-3 border-b px-6 pb-4">
+          {/* Search */}
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search logs..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {/* Level Filter */}
+          <Select value={levelFilter} onValueChange={setLevelFilter}>
+            <SelectTrigger className="w-[140px]">
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Filter level" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Levels</SelectItem>
+              <SelectItem value="debug">
+                🔍 Debug {levelCounts.debug ? `(${levelCounts.debug})` : ''}
+              </SelectItem>
+              <SelectItem value="info">
+                ℹ️ Info {levelCounts.info ? `(${levelCounts.info})` : ''}
+              </SelectItem>
+              <SelectItem value="warn">
+                ⚠️ Warning {levelCounts.warn ? `(${levelCounts.warn})` : ''}
+              </SelectItem>
+              <SelectItem value="error">
+                ❌ Error {levelCounts.error ? `(${levelCounts.error})` : ''}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsPaused(!isPaused)}
+              title={isPaused ? 'Resume auto-scroll' : 'Pause auto-scroll'}
+            >
+              {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onRefresh} title="Refresh">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleExport} title="Export logs">
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClearLogs}
+              title="Clear logs"
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Log Entries */}
+        <ScrollArea className="h-[500px]" ref={scrollRef}>
+          <div className="p-4 font-mono text-sm">
+            {filteredLogs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <Filter className="mb-4 h-12 w-12" />
+                <p>No logs match your filters</p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {filteredLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className={cn(
+                      'group flex items-start gap-3 rounded-md p-2 transition-colors hover:bg-muted/50',
+                      log.level === 'error' && 'bg-red-500/5'
+                    )}
+                  >
+                    {/* Timestamp */}
+                    <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                      {formatTimestamp(log.timestamp)}
+                    </span>
+
+                    {/* Level Badge */}
+                    <Badge variant="secondary" className={cn('shrink-0 text-xs', levelColors[log.level])}>
+                      {levelIcons[log.level]} {log.level.toUpperCase()}
+                    </Badge>
+
+                    {/* Source */}
+                    {log.source && (
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        [{log.source}]
+                      </span>
+                    )}
+
+                    {/* Message */}
+                    <span className="flex-1 break-all">{log.message}</span>
+
+                    {/* Copy Button */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100"
+                      onClick={() => handleCopyLog(log)}
+                    >
+                      {copiedId === log.id ? (
+                        <Check className="h-3 w-3 text-green-500" />
+                      ) : (
+                        <Copy className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* Status Bar */}
+        <div className="flex items-center justify-between border-t px-6 py-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-4">
+            <span>Total: {logs.length}</span>
+            <span>Filtered: {filteredLogs.length}</span>
+            {levelCounts.error > 0 && (
+              <span className="text-red-500">Errors: {levelCounts.error}</span>
+            )}
+            {levelCounts.warn > 0 && (
+              <span className="text-yellow-500">Warnings: {levelCounts.warn}</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {isPaused && <Badge variant="secondary">Paused</Badge>}
+            <span>Last updated: {new Date().toLocaleTimeString()}</span>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+

@@ -1,0 +1,421 @@
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  MessageCircle,
+  X,
+  Send,
+  Loader2,
+  Bot,
+  User,
+  Trash2,
+  Minimize2,
+  Maximize2,
+  Settings,
+  Copy,
+  Check,
+  RefreshCw,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  isStreaming?: boolean;
+}
+
+interface OllamaModel {
+  name: string;
+  size: string;
+  modified_at: string;
+}
+
+interface ChatbotProps {
+  ollamaUrl?: string;
+  defaultModel?: string;
+  systemPrompt?: string;
+  placeholder?: string;
+  title?: string;
+}
+
+export function Chatbot({
+  ollamaUrl = 'http://localhost:11434',
+  defaultModel = 'llama3.2:3b',
+  systemPrompt = 'You are a helpful assistant for a dashboard application. Be concise and helpful.',
+  placeholder = 'Ask me anything...',
+  title = 'AI Assistant',
+}: ChatbotProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [models, setModels] = useState<OllamaModel[]>([]);
+  const [selectedModel, setSelectedModel] = useState(defaultModel);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking');
+  
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check Ollama connection and fetch models
+  const checkConnection = useCallback(async () => {
+    setConnectionStatus('checking');
+    try {
+      const response = await fetch(`${ollamaUrl}/api/tags`);
+      if (response.ok) {
+        const data = await response.json();
+        setModels(data.models || []);
+        setConnectionStatus('connected');
+        
+        // Set default model if available
+        if (data.models?.length > 0 && !data.models.find((m: OllamaModel) => m.name === selectedModel)) {
+          setSelectedModel(data.models[0].name);
+        }
+      } else {
+        setConnectionStatus('disconnected');
+      }
+    } catch {
+      setConnectionStatus('disconnected');
+    }
+  }, [ollamaUrl, selectedModel]);
+
+  useEffect(() => {
+    if (isOpen) {
+      checkConnection();
+    }
+  }, [isOpen, checkConnection]);
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  // Focus input when opened
+  useEffect(() => {
+    if (isOpen && !isMinimized && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen, isMinimized]);
+
+  const generateId = () => Math.random().toString(36).substring(2, 9);
+
+  const sendMessage = async () => {
+    if (!input.trim() || isLoading || connectionStatus !== 'connected') return;
+
+    const userMessage: Message = {
+      id: generateId(),
+      role: 'user',
+      content: input.trim(),
+      timestamp: new Date(),
+    };
+
+    const assistantMessage: Message = {
+      id: generateId(),
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+      isStreaming: true,
+    };
+
+    setMessages((prev) => [...prev, userMessage, assistantMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${ollamaUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: selectedModel,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...messages.map((m) => ({ role: m.role, content: m.content })),
+            { role: 'user', content: userMessage.content },
+          ],
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to get response');
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (reader) {
+        let fullContent = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n').filter(Boolean);
+
+          for (const line of lines) {
+            try {
+              const json = JSON.parse(line);
+              if (json.message?.content) {
+                fullContent += json.message.content;
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === assistantMessage.id
+                      ? { ...m, content: fullContent }
+                      : m
+                  )
+                );
+              }
+            } catch {
+              // Skip invalid JSON lines
+            }
+          }
+        }
+
+        // Mark streaming as complete
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantMessage.id
+              ? { ...m, isStreaming: false }
+              : m
+          )
+        );
+      }
+    } catch (error) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantMessage.id
+            ? {
+                ...m,
+                content: 'Sorry, I encountered an error. Please check if Ollama is running.',
+                isStreaming: false,
+              }
+            : m
+        )
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  const copyMessage = async (message: Message) => {
+    await navigator.clipboard.writeText(message.content);
+    setCopiedId(message.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+  };
+
+  // Floating button when closed
+  if (!isOpen) {
+    return (
+      <Button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all z-50"
+        size="icon"
+      >
+        <MessageCircle className="h-6 w-6" />
+      </Button>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        'fixed bottom-6 right-6 z-50 flex flex-col rounded-2xl border bg-background shadow-2xl transition-all duration-300',
+        isMinimized ? 'h-14 w-80' : 'h-[600px] w-[400px]'
+      )}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between border-b px-4 py-3">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
+            <Bot className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-sm">{title}</h3>
+            <div className="flex items-center gap-1.5">
+              <span
+                className={cn(
+                  'h-2 w-2 rounded-full',
+                  connectionStatus === 'connected' && 'bg-green-500',
+                  connectionStatus === 'disconnected' && 'bg-red-500',
+                  connectionStatus === 'checking' && 'bg-yellow-500 animate-pulse'
+                )}
+              />
+              <span className="text-xs text-muted-foreground">
+                {connectionStatus === 'connected' && selectedModel}
+                {connectionStatus === 'disconnected' && 'Disconnected'}
+                {connectionStatus === 'checking' && 'Connecting...'}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowSettings(!showSettings)}>
+            <Settings className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsMinimized(!isMinimized)}>
+            {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {!isMinimized && (
+        <>
+          {/* Settings Panel */}
+          {showSettings && (
+            <div className="border-b p-4 space-y-3">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Model</label>
+                <Select value={selectedModel} onValueChange={setSelectedModel}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {models.map((model) => (
+                      <SelectItem key={model.name} value={model.name}>
+                        {model.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={checkConnection}>
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Reconnect
+                </Button>
+                <Button variant="outline" size="sm" onClick={clearChat}>
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Clear Chat
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Messages */}
+          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+                <Bot className="h-12 w-12 mb-4 opacity-50" />
+                <p className="text-sm">Start a conversation!</p>
+                <p className="text-xs mt-1">I'm here to help with your questions.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      'flex gap-3',
+                      message.role === 'user' && 'flex-row-reverse'
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
+                        message.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted'
+                      )}
+                    >
+                      {message.role === 'user' ? (
+                        <User className="h-4 w-4" />
+                      ) : (
+                        <Bot className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div
+                      className={cn(
+                        'group relative max-w-[80%] rounded-2xl px-4 py-2',
+                        message.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted'
+                      )}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">
+                        {message.content}
+                        {message.isStreaming && (
+                          <span className="inline-block w-2 h-4 ml-1 bg-current animate-pulse" />
+                        )}
+                      </p>
+                      {!message.isStreaming && message.role === 'assistant' && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute -right-10 top-0 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => copyMessage(message)}
+                        >
+                          {copiedId === message.id ? (
+                            <Check className="h-3 w-3 text-green-500" />
+                          ) : (
+                            <Copy className="h-3 w-3" />
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+
+          {/* Input */}
+          <div className="border-t p-4">
+            <div className="flex items-center gap-2">
+              <Input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={connectionStatus === 'connected' ? placeholder : 'Ollama not connected...'}
+                disabled={isLoading || connectionStatus !== 'connected'}
+                className="flex-1"
+              />
+              <Button
+                onClick={sendMessage}
+                disabled={!input.trim() || isLoading || connectionStatus !== 'connected'}
+                size="icon"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            <p className="mt-2 text-xs text-center text-muted-foreground">
+              Powered by Ollama • {selectedModel}
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+

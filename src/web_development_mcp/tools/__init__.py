@@ -12,5 +12,6 @@ __all__ = [
     "scaffolding_tools",
     "package_tools",
     "build_tools",
-    "component_tools"
+    "component_tools",
+    "dashboard_tools"
 ]

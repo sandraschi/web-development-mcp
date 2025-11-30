@@ -1,0 +1,204 @@
+import { LayoutGrid, List } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+export type ViewMode = 'card' | 'list';
+
+interface ViewSwitcherProps {
+  view: ViewMode;
+  onViewChange: (view: ViewMode) => void;
+  className?: string;
+}
+
+export function ViewSwitcher({ view, onViewChange, className }: ViewSwitcherProps) {
+  return (
+    <div className={cn('flex items-center rounded-lg border bg-muted p-1', className)}>
+      <Button
+        variant="ghost"
+        size="sm"
+        className={cn(
+          'h-8 px-3 rounded-md',
+          view === 'card' && 'bg-background shadow-sm'
+        )}
+        onClick={() => onViewChange('card')}
+      >
+        <LayoutGrid className="h-4 w-4 mr-2" />
+        Cards
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className={cn(
+          'h-8 px-3 rounded-md',
+          view === 'list' && 'bg-background shadow-sm'
+        )}
+        onClick={() => onViewChange('list')}
+      >
+        <List className="h-4 w-4 mr-2" />
+        List
+      </Button>
+    </div>
+  );
+}
+
+// Example Card component for card view
+interface DataCardProps {
+  title: string;
+  description?: string;
+  value?: string | number;
+  trend?: {
+    value: number;
+    isPositive: boolean;
+  };
+  icon?: React.ReactNode;
+  onClick?: () => void;
+}
+
+export function DataCard({ title, description, value, trend, icon, onClick }: DataCardProps) {
+  return (
+    <div
+      className={cn(
+        'rounded-xl border bg-card p-6 shadow-sm transition-all',
+        onClick && 'cursor-pointer hover:shadow-md hover:border-primary/50'
+      )}
+      onClick={onClick}
+    >
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          {value !== undefined && (
+            <p className="text-2xl font-bold tracking-tight">{value}</p>
+          )}
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
+        </div>
+        {icon && (
+          <div className="rounded-lg bg-primary/10 p-2 text-primary">
+            {icon}
+          </div>
+        )}
+      </div>
+      {trend && (
+        <div className="mt-4 flex items-center gap-1 text-sm">
+          <span
+            className={cn(
+              'font-medium',
+              trend.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+            )}
+          >
+            {trend.isPositive ? '+' : ''}{trend.value}%
+          </span>
+          <span className="text-muted-foreground">from last month</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Example List Item component for list view
+interface DataListItemProps {
+  title: string;
+  subtitle?: string;
+  value?: string | number;
+  status?: {
+    label: string;
+    variant: 'default' | 'success' | 'warning' | 'error';
+  };
+  icon?: React.ReactNode;
+  onClick?: () => void;
+}
+
+const statusColors = {
+  default: 'bg-slate-500/20 text-slate-600 dark:text-slate-400',
+  success: 'bg-green-500/20 text-green-600 dark:text-green-400',
+  warning: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400',
+  error: 'bg-red-500/20 text-red-600 dark:text-red-400',
+};
+
+export function DataListItem({ title, subtitle, value, status, icon, onClick }: DataListItemProps) {
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-4 rounded-lg border bg-card p-4 transition-all',
+        onClick && 'cursor-pointer hover:bg-muted/50'
+      )}
+      onClick={onClick}
+    >
+      {icon && (
+        <div className="shrink-0 rounded-lg bg-primary/10 p-2 text-primary">
+          {icon}
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="font-medium truncate">{title}</p>
+        {subtitle && (
+          <p className="text-sm text-muted-foreground truncate">{subtitle}</p>
+        )}
+      </div>
+      {status && (
+        <span
+          className={cn(
+            'shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium',
+            statusColors[status.variant]
+          )}
+        >
+          {status.label}
+        </span>
+      )}
+      {value !== undefined && (
+        <span className="shrink-0 font-semibold tabular-nums">{value}</span>
+      )}
+    </div>
+  );
+}
+
+// Container component that switches between views
+interface DataViewProps<T> {
+  data: T[];
+  view: ViewMode;
+  renderCard: (item: T, index: number) => React.ReactNode;
+  renderListItem: (item: T, index: number) => React.ReactNode;
+  emptyMessage?: string;
+  cardGridCols?: 1 | 2 | 3 | 4;
+}
+
+export function DataView<T>({
+  data,
+  view,
+  renderCard,
+  renderListItem,
+  emptyMessage = 'No items to display',
+  cardGridCols = 3,
+}: DataViewProps<T>) {
+  if (data.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+        <LayoutGrid className="mb-4 h-12 w-12" />
+        <p>{emptyMessage}</p>
+      </div>
+    );
+  }
+
+  const gridColsClass = {
+    1: 'grid-cols-1',
+    2: 'grid-cols-1 md:grid-cols-2',
+    3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+    4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+  };
+
+  if (view === 'card') {
+    return (
+      <div className={cn('grid gap-4', gridColsClass[cardGridCols])}>
+        {data.map((item, index) => renderCard(item, index))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {data.map((item, index) => renderListItem(item, index))}
+    </div>
+  );
+}
+

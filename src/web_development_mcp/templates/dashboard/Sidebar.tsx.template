@@ -1,0 +1,164 @@
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  Settings,
+  HelpCircle,
+  FileText,
+  BarChart3,
+  Users,
+  Folder,
+  Bell,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
+
+interface SidebarProps {
+  collapsed: boolean;
+  onToggle: () => void;
+  onNavigate?: (path: string) => void;
+  onHelpClick?: () => void;
+  currentPath?: string;
+}
+
+interface NavItem {
+  icon: React.ElementType;
+  label: string;
+  path: string;
+  badge?: number;
+}
+
+const mainNavItems: NavItem[] = [
+  { icon: Home, label: 'Dashboard', path: '/' },
+  { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+  { icon: Users, label: 'Users', path: '/users' },
+  { icon: Folder, label: 'Projects', path: '/projects' },
+  { icon: FileText, label: 'Logs', path: '/logs', badge: 3 },
+  { icon: Bell, label: 'Notifications', path: '/notifications', badge: 12 },
+];
+
+const bottomNavItems: NavItem[] = [
+  { icon: Settings, label: 'Settings', path: '/settings' },
+  { icon: HelpCircle, label: 'Help', path: '/help' },
+];
+
+export function Sidebar({ collapsed, onToggle, onNavigate, onHelpClick, currentPath = '/' }: SidebarProps) {
+  const handleNavClick = (item: NavItem) => {
+    if (item.path === '/help' && onHelpClick) {
+      onHelpClick();
+    } else if (onNavigate) {
+      onNavigate(item.path);
+    }
+  };
+
+  const NavButton = ({ item }: { item: NavItem }) => {
+    const isActive = currentPath === item.path;
+    const Icon = item.icon;
+
+    const button = (
+      <Button
+        variant={isActive ? 'secondary' : 'ghost'}
+        className={cn(
+          'w-full justify-start gap-3 relative',
+          collapsed && 'justify-center px-2',
+          isActive && 'bg-sidebar-accent text-sidebar-accent-foreground'
+        )}
+        onClick={() => handleNavClick(item)}
+      >
+        <Icon className="h-5 w-5 shrink-0" />
+        {!collapsed && <span className="truncate">{item.label}</span>}
+        {item.badge && !collapsed && (
+          <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-medium text-primary-foreground">
+            {item.badge}
+          </span>
+        )}
+        {item.badge && collapsed && (
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-destructive-foreground">
+            {item.badge}
+          </span>
+        )}
+      </Button>
+    );
+
+    if (collapsed) {
+      return (
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>{button}</TooltipTrigger>
+          <TooltipContent side="right" className="flex items-center gap-2">
+            {item.label}
+            {item.badge && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-medium text-primary-foreground">
+                {item.badge}
+              </span>
+            )}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return button;
+  };
+
+  return (
+    <TooltipProvider>
+      <aside
+        className={cn(
+          'flex h-screen flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300 ease-in-out',
+          collapsed ? 'w-16' : 'w-64'
+        )}
+      >
+        {/* Header */}
+        <div className={cn('flex h-16 items-center border-b border-sidebar-border px-4', collapsed && 'justify-center px-2')}>
+          {!collapsed && (
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                <BarChart3 className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <span className="text-lg font-semibold text-sidebar-foreground">Dashboard</span>
+            </div>
+          )}
+          {collapsed && (
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+              <BarChart3 className="h-5 w-5 text-primary-foreground" />
+            </div>
+          )}
+        </div>
+
+        {/* Main Navigation */}
+        <nav className="flex-1 space-y-1 overflow-y-auto p-2">
+          {mainNavItems.map((item) => (
+            <NavButton key={item.path} item={item} />
+          ))}
+        </nav>
+
+        {/* Bottom Navigation */}
+        <div className="border-t border-sidebar-border p-2">
+          <Separator className="mb-2" />
+          {bottomNavItems.map((item) => (
+            <NavButton key={item.path} item={item} />
+          ))}
+          
+          {/* Collapse Toggle */}
+          <Button
+            variant="ghost"
+            className={cn('mt-2 w-full justify-center', !collapsed && 'justify-start gap-3')}
+            onClick={onToggle}
+          >
+            {collapsed ? (
+              <ChevronRight className="h-5 w-5" />
+            ) : (
+              <>
+                <ChevronLeft className="h-5 w-5" />
+                <span>Collapse</span>
+              </>
+            )}
+          </Button>
+        </div>
+      </aside>
+    </TooltipProvider>
+  );
+}
+

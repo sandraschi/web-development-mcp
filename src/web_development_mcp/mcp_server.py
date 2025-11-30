@@ -20,7 +20,8 @@ from .tools import (
     scaffolding_tools,
     package_tools,
     build_tools,
-    component_tools
+    component_tools,
+    dashboard_tools
 )
 
 # Register all tool groups
@@ -28,5 +29,6 @@ scaffolding_tools.register_tools(mcp)
 package_tools.register_tools(mcp)
 build_tools.register_tools(mcp)
 component_tools.register_tools(mcp)
+dashboard_tools.register_tools(mcp)
 
 logger.info("Web Development MCP server initialized with all tool modules")

@@ -1,0 +1,239 @@
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Search,
+  Keyboard,
+  BookOpen,
+  MessageCircle,
+  ExternalLink,
+  Command,
+} from 'lucide-react';
+
+interface HelpModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onContactSupport?: () => void;
+}
+
+interface KeyboardShortcut {
+  keys: string[];
+  description: string;
+  category: string;
+}
+
+const shortcuts: KeyboardShortcut[] = [
+  { keys: ['⌘', 'K'], description: 'Open search', category: 'Navigation' },
+  { keys: ['⌘', 'B'], description: 'Toggle sidebar', category: 'Navigation' },
+  { keys: ['⌘', '/'], description: 'Open help', category: 'Navigation' },
+  { keys: ['⌘', '.'], description: 'Toggle theme', category: 'Appearance' },
+  { keys: ['⌘', 'J'], description: 'Open chatbot', category: 'Tools' },
+  { keys: ['⌘', 'L'], description: 'View logs', category: 'Tools' },
+  { keys: ['Esc'], description: 'Close modal/panel', category: 'General' },
+  { keys: ['⌘', 'S'], description: 'Save changes', category: 'General' },
+  { keys: ['⌘', 'Z'], description: 'Undo', category: 'Editing' },
+  { keys: ['⌘', 'Shift', 'Z'], description: 'Redo', category: 'Editing' },
+];
+
+interface HelpArticle {
+  title: string;
+  description: string;
+  link: string;
+}
+
+const helpArticles: HelpArticle[] = [
+  {
+    title: 'Getting Started',
+    description: 'Learn the basics of using the dashboard',
+    link: '/docs/getting-started',
+  },
+  {
+    title: 'Dashboard Overview',
+    description: 'Understanding the main dashboard features',
+    link: '/docs/dashboard',
+  },
+  {
+    title: 'Managing Users',
+    description: 'How to add, edit, and remove users',
+    link: '/docs/users',
+  },
+  {
+    title: 'Analytics & Reports',
+    description: 'Generate and export analytics reports',
+    link: '/docs/analytics',
+  },
+  {
+    title: 'API Documentation',
+    description: 'Integrate with our REST API',
+    link: '/docs/api',
+  },
+  {
+    title: 'Troubleshooting',
+    description: 'Common issues and how to resolve them',
+    link: '/docs/troubleshooting',
+  },
+];
+
+export function HelpModal({ open, onOpenChange, onContactSupport }: HelpModalProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredShortcuts = shortcuts.filter(
+    (s) =>
+      s.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredArticles = helpArticles.filter(
+    (a) =>
+      a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      a.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const groupedShortcuts = filteredShortcuts.reduce((acc, shortcut) => {
+    if (!acc[shortcut.category]) {
+      acc[shortcut.category] = [];
+    }
+    acc[shortcut.category].push(shortcut);
+    return acc;
+  }, {} as Record<string, KeyboardShortcut[]>);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[85vh] p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="text-xl">Help Center</DialogTitle>
+          <DialogDescription>
+            Search for help articles, view keyboard shortcuts, or contact support.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Search */}
+        <div className="px-6 pb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search help..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
+        <Tabs defaultValue="shortcuts" className="flex-1">
+          <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-6">
+            <TabsTrigger
+              value="shortcuts"
+              className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-medium text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
+              <Keyboard className="mr-2 h-4 w-4" />
+              Shortcuts
+            </TabsTrigger>
+            <TabsTrigger
+              value="docs"
+              className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-medium text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Documentation
+            </TabsTrigger>
+            <TabsTrigger
+              value="support"
+              className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-medium text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
+              <MessageCircle className="mr-2 h-4 w-4" />
+              Support
+            </TabsTrigger>
+          </TabsList>
+
+          <ScrollArea className="h-[400px]">
+            <TabsContent value="shortcuts" className="mt-0 p-6">
+              {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]) => (
+                <div key={category} className="mb-6 last:mb-0">
+                  <h3 className="mb-3 text-sm font-medium text-muted-foreground">{category}</h3>
+                  <div className="space-y-2">
+                    {categoryShortcuts.map((shortcut, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg border p-3"
+                      >
+                        <span className="text-sm">{shortcut.description}</span>
+                        <div className="flex items-center gap-1">
+                          {shortcut.keys.map((key, keyIndex) => (
+                            <kbd
+                              key={keyIndex}
+                              className="flex h-6 min-w-6 items-center justify-center rounded border bg-muted px-2 font-mono text-xs"
+                            >
+                              {key === '⌘' ? <Command className="h-3 w-3" /> : key}
+                            </kbd>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {Object.keys(groupedShortcuts).length === 0 && (
+                <p className="text-center text-muted-foreground">No shortcuts found</p>
+              )}
+            </TabsContent>
+
+            <TabsContent value="docs" className="mt-0 p-6">
+              <div className="grid gap-3">
+                {filteredArticles.map((article, index) => (
+                  <a
+                    key={index}
+                    href={article.link}
+                    className="group flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                  >
+                    <div>
+                      <h4 className="font-medium group-hover:text-primary">{article.title}</h4>
+                      <p className="text-sm text-muted-foreground">{article.description}</p>
+                    </div>
+                    <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                  </a>
+                ))}
+                {filteredArticles.length === 0 && (
+                  <p className="text-center text-muted-foreground">No articles found</p>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="support" className="mt-0 p-6">
+              <div className="space-y-6">
+                <div className="rounded-lg border p-6 text-center">
+                  <MessageCircle className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                  <h3 className="mb-2 text-lg font-medium">Need Help?</h3>
+                  <p className="mb-4 text-sm text-muted-foreground">
+                    Our support team is here to help you with any questions or issues.
+                  </p>
+                  <Button onClick={onContactSupport}>Contact Support</Button>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-lg border p-4">
+                    <h4 className="mb-1 font-medium">Email</h4>
+                    <p className="text-sm text-muted-foreground">support@example.com</p>
+                  </div>
+                  <div className="rounded-lg border p-4">
+                    <h4 className="mb-1 font-medium">Response Time</h4>
+                    <p className="text-sm text-muted-foreground">Within 24 hours</p>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </ScrollArea>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
