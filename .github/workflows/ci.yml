@@ -28,11 +28,11 @@ jobs:
 
       - name: Lint with black
         run: |
-          black --check web_development_mcp/
+          black --check src/web_development_mcp/
 
       - name: Type check with mypy
         run: |
-          mypy web_development_mcp/ --ignore-missing-imports
+          mypy src/web_development_mcp/ --ignore-missing-imports
 
       - name: Run tests
         run: |

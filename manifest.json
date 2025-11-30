@@ -20,7 +20,7 @@
     "update_component",
     "and 16 more portmanteau operations"
   ],
-  "entry": "web_development_mcp/mcp_server.py",
+  "entry": "src/web_development_mcp/mcp_server.py",
   "python_version": ">=3.9",
   "dependencies": {
     "fastmcp": ">=2.13.0"
