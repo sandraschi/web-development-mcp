@@ -32,3 +32,8 @@ component_tools.register_tools(mcp)
 dashboard_tools.register_tools(mcp)
 
 logger.info("Web Development MCP server initialized with all tool modules")
+
+
+def main():
+    """Run the MCP server."""
+    mcp.run()

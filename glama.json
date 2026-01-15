@@ -1,0 +1,37 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "maintainers": ["sandraschi"],
+  "name": "web-development-mcp",
+  "description": "Web development operations MCP server supporting modern frontend frameworks, build tools, and development workflows. Project scaffolding, package management, build configuration. Beta status.",
+  "type": "mcp_server",
+  "status": "beta",
+  "framework": "FastMCP",
+  "tools": 12,
+  "transport": ["stdio"],
+  "keywords": [
+    "web-development",
+    "frontend",
+    "react",
+    "vue",
+    "svelte",
+    "nextjs",
+    "vite",
+    "typescript",
+    "mcp-server",
+    "fastmcp"
+  ],
+  "features": {
+    "project_scaffolding": {
+      "enabled": true,
+      "frameworks": ["React", "Vue 3", "SvelteKit", "Next.js", "Vanilla TypeScript"]
+    },
+    "package_management": {
+      "enabled": true,
+      "managers": ["npm", "yarn", "pnpm"]
+    },
+    "build_configuration": {
+      "enabled": true
+    }
+  }
+}
+

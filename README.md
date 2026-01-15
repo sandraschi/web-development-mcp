@@ -31,6 +31,31 @@ One unified interface for entire web development stack - from project creation t
 - **Custom hooks** - State, effect, fetch, and storage hooks
 - **Best practices** - Consistent patterns and Austrian dev standards
 
+## Installation
+
+### For Cursor IDE
+
+**Important:** Cursor uses system Python. Install dependencies in the Python that Cursor uses:
+
+```powershell
+# Find system Python path (check Cursor error logs if needed)
+# Example: C:\Users\sandr\AppData\Local\Programs\Python\Python310\python.exe
+python -m pip install -r requirements.txt
+python -m pip install -e .
+```
+
+See `CURSOR_SETUP.md` for detailed Cursor configuration instructions.
+
+### For Development
+
+```powershell
+cd d:\Dev\repos\web-development-mcp
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+pip install -e .
+```
+
 ## Quick Start
 
 ### 1. Create a New React Project

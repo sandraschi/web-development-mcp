@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "web-development-mcp": {
+      "command": "python",
+      "args": [
+        "-m",
+        "web_development_mcp.__main__"
+      ],
+      "env": {
+        "PYTHONPATH": "D:/Dev/repos/web-development-mcp/src",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}

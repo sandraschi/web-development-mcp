@@ -1,0 +1,10 @@
+id = "web-development-mcp"
+name = "WebDevelopmentTools"
+version = "0.1.0"
+schema_version = 1
+authors = ["Sandra <sandraschipal@hotmail.com>"]
+description = "Web development and deployment utilities"
+repository = "https://github.com/sandraschi/web-development-mcp"
+
+[context_servers.web-development-mcp]
+name = "Web Development Tools"
