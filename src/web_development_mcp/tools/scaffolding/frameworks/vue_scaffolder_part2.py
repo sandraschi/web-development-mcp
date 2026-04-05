@@ -6,11 +6,12 @@ This module contains configuration file creation for Vue 3 projects.
 
 import json
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
+
 
 class VueScaffolderConfigs:
     """Handles creation of configuration files for Vue 3 projects."""
-    
+
     @staticmethod
     def create_config_files(project_path: Path, options: Dict[str, Any]) -> None:
         """Create all configuration files for a Vue project."""
@@ -19,7 +20,7 @@ class VueScaffolderConfigs:
         VueScaffolderConfigs._create_eslint_config(project_path, options)
         VueScaffolderConfigs._create_tailwind_config(project_path, options)
         VueScaffolderConfigs._create_postcss_config(project_path, options)
-    
+
     @staticmethod
     def _create_tsconfig(project_path: Path, options: Dict[str, Any]) -> None:
         """Create tsconfig.json for TypeScript configuration."""
@@ -40,14 +41,8 @@ class VueScaffolderConfigs:
                 "noUnusedParameters": True,
                 "noFallthroughCasesInSwitch": True,
                 "baseUrl": ".",
-                "paths": {
-                    "@/*": ["./src/*"]
-                },
-                "types": [
-                    "vite/client",
-                    "@vitejs/plugin-vue",
-                    "@vitejs/plugin-vue-jsx"
-                ]
+                "paths": {"@/*": ["./src/*"]},
+                "types": ["vite/client", "@vitejs/plugin-vue", "@vitejs/plugin-vue-jsx"],
             },
             "include": [
                 "src/**/*.ts",
@@ -55,14 +50,14 @@ class VueScaffolderConfigs:
                 "src/**/*.tsx",
                 "src/**/*.vue",
                 "tests/**/*.ts",
-                "tests/**/*.tsx"
+                "tests/**/*.tsx",
             ],
-            "exclude": ["node_modules"]
+            "exclude": ["node_modules"],
         }
-        
+
         with open(project_path / "tsconfig.json", "w") as f:
             json.dump(tsconfig, f, indent=2)
-    
+
     @staticmethod
     def _create_vite_config(project_path: Path, options: Dict[str, Any]) -> None:
         """Create vite.config.ts for Vite configuration."""
@@ -109,7 +104,7 @@ export default defineConfig({
 """
         with open(project_path / "vite.config.ts", "w") as f:
             f.write(vite_config)
-    
+
     @staticmethod
     def _create_eslint_config(project_path: Path, options: Dict[str, Any]) -> None:
         """Create .eslintrc.js for ESLint configuration."""
@@ -170,7 +165,7 @@ export default defineConfig({
 """
         with open(project_path / ".eslintrc.js", "w") as f:
             f.write(eslint_config)
-    
+
     @staticmethod
     def _create_tailwind_config(project_path: Path, options: Dict[str, Any]) -> None:
         """Create tailwind.config.js for Tailwind CSS configuration."""
@@ -196,7 +191,7 @@ module.exports = {
 """
         with open(project_path / "tailwind.config.js", "w") as f:
             f.write(tailwind_config)
-    
+
     @staticmethod
     def _create_postcss_config(project_path: Path, options: Dict[str, Any]) -> None:
         """Create postcss.config.js for PostCSS configuration."""

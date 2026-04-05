@@ -5,43 +5,44 @@ This module contains component creation for Vue 3 projects.
 """
 
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
+
 
 class VueScaffolderComponents:
     """Handles creation of Vue components and project files."""
-    
+
     @staticmethod
     def create_components(project_path: Path, options: Dict[str, Any]) -> None:
         """Create all initial components and project files."""
-        src_dir = project_path / 'src'
-        
+        src_dir = project_path / "src"
+
         # Create main application files
         VueScaffolderComponents._create_main_ts(src_dir, options)
         VueScaffolderComponents._create_app_vue(src_dir, options)
         VueScaffolderComponents._create_navbar(src_dir, options)
-        
+
         # Create router if enabled
         if options.get("router", True):
             VueScaffolderComponents._create_router(src_dir, options)
             VueScaffolderComponents._create_views(src_dir, options)
-        
+
         # Create Pinia store if enabled
         if options.get("pinia", True):
             VueScaffolderComponents._create_stores(src_dir, options)
-        
+
         # Create styles
         VueScaffolderComponents._create_styles(src_dir, options)
-        
+
         # Create index.html
         VueScaffolderComponents._create_index_html(project_path, options)
-        
+
         # Create test files if testing is enabled
         if options.get("testing", True):
             VueScaffolderComponents._create_test_files(project_path, options)
-        
+
         # Create README.md
         VueScaffolderComponents._create_readme(project_path, options)
-    
+
     @staticmethod
     def _create_main_ts(src_dir: Path, options: Dict[str, Any]) -> None:
         """Create main.ts entry point."""
@@ -61,7 +62,7 @@ app.mount('#app')
 """
         with open(src_dir / "main.ts", "w") as f:
             f.write(main_ts)
-    
+
     @staticmethod
     def _create_app_vue(src_dir: Path, options: Dict[str, Any]) -> None:
         """Create App.vue root component."""
@@ -83,7 +84,7 @@ import TheNavbar from './components/TheNavbar.vue'
 """
         with open(src_dir / "App.vue", "w") as f:
             f.write(app_vue)
-    
+
     @staticmethod
     def _create_navbar(src_dir: Path, options: Dict[str, Any]) -> None:
         """Create TheNavbar.vue component."""
@@ -109,16 +110,16 @@ const toggleMenu = () => {
             </RouterLink>
           </div>
           <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-            <RouterLink 
-              to="/" 
+            <RouterLink
+              to="/"
               class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
               active-class="border-indigo-500"
               exact-active-class="border-indigo-500"
             >
               Home
             </RouterLink>
-            <RouterLink 
-              to="/about" 
+            <RouterLink
+              to="/about"
               class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
               active-class="border-indigo-500 text-gray-900"
             >
@@ -180,12 +181,12 @@ const toggleMenu = () => {
 """
         with open(src_dir / "components" / "TheNavbar.vue", "w") as f:
             f.write(navbar_vue)
-    
+
     @staticmethod
     def _create_router(src_dir: Path, options: Dict[str, Any]) -> None:
         """Create router configuration."""
         (src_dir / "router").mkdir(exist_ok=True)
-        
+
         router_ts = """import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 
@@ -209,23 +210,23 @@ export default router
 """
         with open(src_dir / "router" / "index.ts", "w") as f:
             f.write(router_ts)
-    
+
     @staticmethod
     def _create_views(src_dir: Path, options: Dict[str, Any]) -> None:
         """Create view components."""
         views_dir = src_dir / "views"
         views_dir.mkdir(exist_ok=True)
-        
+
         # HomeView.vue
         home_view = """<template>
   <div class="home">
     <h1 class="text-3xl font-bold text-gray-900 mb-6">Welcome to Your Vue.js App</h1>
     <p class="text-lg text-gray-700 mb-6">
       For a guide and recipes on how to configure / customize this project,<br>
-      check out the 
-      <a 
-        href="https://v3.vuejs.org/guide/" 
-        target="_blank" 
+      check out the
+      <a
+        href="https://v3.vuejs.org/guide/"
+        target="_blank"
         rel="noopener"
         class="text-indigo-600 hover:text-indigo-800 underline"
       >
@@ -255,7 +256,7 @@ export default defineComponent({
 """
         with open(views_dir / "HomeView.vue", "w") as f:
             f.write(home_view)
-        
+
         # AboutView.vue
         about_view = """<template>
   <div class="about">
@@ -304,13 +305,13 @@ export default defineComponent({
 """
         with open(views_dir / "AboutView.vue", "w") as f:
             f.write(about_view)
-    
+
     @staticmethod
     def _create_stores(src_dir: Path, options: Dict[str, Any]) -> None:
         """Create Pinia store."""
         stores_dir = src_dir / "stores"
         stores_dir.mkdir(exist_ok=True)
-        
+
         stores_index = """import { defineStore } from 'pinia'
 
 export const useMainStore = defineStore('main', {
@@ -329,13 +330,13 @@ export const useMainStore = defineStore('main', {
 """
         with open(stores_dir / "index.ts", "w") as f:
             f.write(stores_index)
-    
+
     @staticmethod
     def _create_styles(src_dir: Path, options: Dict[str, Any]) -> None:
         """Create global styles."""
         assets_dir = src_dir / "assets"
         assets_dir.mkdir(exist_ok=True)
-        
+
         main_css = """@tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -353,7 +354,7 @@ export const useMainStore = defineStore('main', {
 """
         with open(assets_dir / "main.css", "w") as f:
             f.write(main_css)
-    
+
     @staticmethod
     def _create_index_html(project_path: Path, options: Dict[str, Any]) -> None:
         """Create index.html."""
@@ -373,13 +374,13 @@ export const useMainStore = defineStore('main', {
 """
         with open(project_path / "index.html", "w") as f:
             f.write(index_html)
-    
+
     @staticmethod
     def _create_test_files(project_path: Path, options: Dict[str, Any]) -> None:
         """Create test setup and example test files."""
         tests_dir = project_path / "tests"
         tests_dir.mkdir(exist_ok=True)
-        
+
         # Create tests/setup.ts
         test_setup = """import { config } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
@@ -407,11 +408,11 @@ config.global.plugins = [
 """
         with open(tests_dir / "setup.ts", "w") as f:
             f.write(test_setup)
-        
+
         # Create tests/unit/example.spec.ts
         unit_tests_dir = tests_dir / "unit"
         unit_tests_dir.mkdir(exist_ok=True)
-        
+
         example_test = """import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
 import { useMainStore } from '../../src/stores'
@@ -426,12 +427,12 @@ describe('HomeView', () => {
 """
         with open(unit_tests_dir / "example.spec.ts", "w") as f:
             f.write(example_test)
-    
+
     @staticmethod
     def _create_readme(project_path: Path, options: Dict[str, Any]) -> None:
         """Create README.md."""
         project_name = project_path.name
-        
+
         readme = f"""# {project_name}
 
 This project was bootstrapped with the Web Development MCP Vue template.

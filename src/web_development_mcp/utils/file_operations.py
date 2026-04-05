@@ -4,16 +4,18 @@ File operations utilities for the Web Development MCP.
 Provides functions for working with files and directories in a cross-platform way.
 """
 
-import shutil
 import json
+import shutil
+from dataclasses import dataclass
 from pathlib import Path
 from string import Template
-from typing import Any, Dict, List, Optional, Union, Generator
-from dataclasses import dataclass
+from typing import Any, Dict, Generator, List, Optional, Union
+
 
 @dataclass
 class FileInfo:
     """File information container."""
+
     path: Path
     size: int
     mtime: float
@@ -52,10 +54,10 @@ def create_file(file_path: Union[str, Path], content: str = "", encoding: str = 
     """
     file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    
-    with open(file_path, 'w', encoding=encoding) as f:
+
+    with open(file_path, "w", encoding=encoding) as f:
         f.write(content)
-    
+
     return file_path
 
 
@@ -63,7 +65,7 @@ def create_file_from_template(
     template_path: Union[str, Path],
     output_path: Union[str, Path],
     context: Optional[Dict[str, Any]] = None,
-    encoding: str = "utf-8"
+    encoding: str = "utf-8",
 ) -> Path:
     """
     Create a file from a template file with variable substitution.
@@ -79,20 +81,20 @@ def create_file_from_template(
     """
     template_path = Path(template_path) if not isinstance(template_path, Path) else template_path
     output_path = Path(output_path) if not isinstance(output_path, Path) else output_path
-    
+
     if not template_path.exists():
         raise FileNotFoundError(f"Template file not found: {template_path}")
-    
+
     # Read the template content
     template_content = read_file(template_path, encoding=encoding)
-    
+
     # Perform variable substitution if context is provided
     if context:
         template = Template(template_content)
         content = template.safe_substitute(context)
     else:
         content = template_content
-    
+
     # Create the output file
     return create_file(output_path, content, encoding=encoding)
 
@@ -109,7 +111,7 @@ def read_file(file_path: Union[str, Path], encoding: str = "utf-8") -> str:
         str: The contents of the file
     """
     file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
-    with open(file_path, 'r', encoding=encoding) as f:
+    with open(file_path, encoding=encoding) as f:
         return f.read()
 
 
@@ -125,11 +127,13 @@ def read_file_lines(file_path: Union[str, Path], encoding: str = "utf-8") -> Lis
         List[str]: List of lines in the file
     """
     file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
-    with open(file_path, 'r', encoding=encoding) as f:
-        return [line.rstrip('\n') for line in f]
+    with open(file_path, encoding=encoding) as f:
+        return [line.rstrip("\n") for line in f]
 
 
-def read_file_chunks(file_path: Union[str, Path], chunk_size: int = 8192, encoding: str = "utf-8") -> Generator[str, None, None]:
+def read_file_chunks(
+    file_path: Union[str, Path], chunk_size: int = 8192, encoding: str = "utf-8"
+) -> Generator[str, None, None]:
     """
     Read a file in chunks.
 
@@ -142,7 +146,7 @@ def read_file_chunks(file_path: Union[str, Path], chunk_size: int = 8192, encodi
         str: Chunks of file content
     """
     file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
-    with open(file_path, 'r', encoding=encoding) as f:
+    with open(file_path, encoding=encoding) as f:
         while True:
             chunk = f.read(chunk_size)
             if not chunk:
@@ -164,10 +168,10 @@ def write_file(file_path: Union[str, Path], content: str, encoding: str = "utf-8
     """
     file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    
-    with open(file_path, 'w', encoding=encoding) as f:
+
+    with open(file_path, "w", encoding=encoding) as f:
         f.write(content)
-    
+
     return file_path
 
 
@@ -185,10 +189,10 @@ def append_to_file(file_path: Union[str, Path], content: str, encoding: str = "u
     """
     file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    
-    with open(file_path, 'a', encoding=encoding) as f:
+
+    with open(file_path, "a", encoding=encoding) as f:
         f.write(content)
-    
+
     return file_path
 
 
@@ -206,17 +210,15 @@ def write_lines(file_path: Union[str, Path], lines: List[str], encoding: str = "
     """
     file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    
-    with open(file_path, 'w', encoding=encoding) as f:
+
+    with open(file_path, "w", encoding=encoding) as f:
         f.writelines(f"{line}\n" for line in lines)
-    
+
     return file_path
 
 
 def copy_file(
-    source: Union[str, Path],
-    destination: Union[str, Path],
-    overwrite: bool = False
+    source: Union[str, Path], destination: Union[str, Path], overwrite: bool = False
 ) -> Path:
     """
     Copy a file from source to destination.
@@ -231,13 +233,13 @@ def copy_file(
     """
     source = Path(source) if not isinstance(source, Path) else source
     destination = Path(destination) if not isinstance(destination, Path) else destination
-    
+
     if not source.is_file():
         raise FileNotFoundError(f"Source file not found: {source}")
-    
+
     if destination.exists() and not overwrite:
         raise FileExistsError(f"Destination file already exists: {destination}")
-    
+
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source, destination)
     return destination
@@ -299,7 +301,7 @@ def write_json_file(path: Union[str, Path], data: Dict[str, Any], indent: int = 
         Path: The path to the written file
     """
     path = Path(path) if not isinstance(path, Path) else path
-    with open(path, 'w', encoding='utf-8') as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=indent, ensure_ascii=False)
     return path
 
@@ -315,5 +317,5 @@ def read_json_file(path: Union[str, Path]) -> Dict[str, Any]:
         Dict[str, Any]: The parsed JSON data
     """
     path = Path(path) if not isinstance(path, Path) else path
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)

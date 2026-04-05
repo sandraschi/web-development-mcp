@@ -1,0 +1,53 @@
+# Web Development MCP HTTP Service
+# Runs the MCP server in HTTP mode for web-based MCP clients
+# Install with: sudo cp web-development-mcp-http.service /etc/systemd/system/
+# Enable with: sudo systemctl enable web-development-mcp-http
+# Start with: sudo systemctl start web-development-mcp-http
+
+[Unit]
+Description=Web Development MCP HTTP Server - AI-Powered 3D Creation (HTTP Mode)
+Documentation=https://github.com/sandraschi/web-development-mcp
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=mcp
+Group=mcp
+Environment=PYTHONPATH=/opt/web-development-mcp/src
+Environment=MCP_ENV=production
+Environment=Web Development_PATH=/usr/bin/Web Development
+ExecStart=/opt/web-development-mcp/venv/bin/python -m web_development_mcp.cli --http --host 0.0.0.0 --port 8000
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/web-development-mcp /tmp /var/tmp
+ProtectHome=yes
+PrivateDevices=yes
+
+# Resource limits
+MemoryLimit=2G
+CPUQuota=200%
+
+# Restart settings
+Restart=always
+RestartSec=5
+StartLimitInterval=400
+StartLimitBurst=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=web-development-mcp-http
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+
+

@@ -1,0 +1,27 @@
+{
+  "manifest_version": "0.2",
+  "name": "web-development-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Web Development 3D creation and manipulation",
+  "author": {
+    "name": "Sandra Schi",
+    "email": "sandra@example.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sandraschi/web-development-mcp"
+  },
+  "server": {
+    "type": "python",
+    "entry_point": "src/web_development_mcp/server.py",
+    "mcp_config": {
+      "command": "python",
+      "args": ["src/web_development_mcp/server.py"],
+      "env": {
+        "PYTHONPATH": "${__dirname}/src",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}

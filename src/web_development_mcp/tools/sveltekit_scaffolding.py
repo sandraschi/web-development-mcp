@@ -7,18 +7,19 @@ Provides functionality to create and configure new SvelteKit projects.
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
+
 
 def create_svelte_package_json(project_name: str, options: Dict[str, Any]) -> Dict[str, Any]:
     """
     Create package.json for a SvelteKit project.
-    
+
     Args:
         project_name: Name of the SvelteKit project
         options: Project configuration options
-        
+
     Returns:
         Dict containing the package.json data
     """
@@ -39,7 +40,7 @@ def create_svelte_package_json(project_name: str, options: Dict[str, Any]) -> Di
             "format": "prettier --plugin-search-dir . --write . && eslint . --fix",
             "lint": "eslint .",
             "package": "svelte-kit sync && svelte-package",
-            "prepare": "svelte-kit sync"
+            "prepare": "svelte-kit sync",
         },
         "devDependencies": {
             "@sveltejs/adapter-auto": "^3.0.0",
@@ -63,28 +64,27 @@ def create_svelte_package_json(project_name: str, options: Dict[str, Any]) -> Di
             "ts-jest": "^29.0.5",
             "typescript": "^5.0.0",
             "vite": "^5.0.0",
-            "vitest": "^1.0.0"
+            "vitest": "^1.0.0",
         },
-        "dependencies": {
-            "@sveltejs/adapter-node": "^3.0.0"
-        }
+        "dependencies": {"@sveltejs/adapter-node": "^3.0.0"},
     }
+
 
 def create_svelte_project_structure(project_path: Path, options: Dict[str, Any]) -> None:
     """
     Create the directory structure for a SvelteKit project.
-    
+
     Args:
         project_path: Base path for the project
         options: Project configuration options
     """
     # Create main directories
-    (project_path / 'src').mkdir(parents=True, exist_ok=True)
-    (project_path / 'src/lib').mkdir(exist_ok=True)
-    (project_path / 'src/routes').mkdir(exist_ok=True)
-    
+    (project_path / "src").mkdir(parents=True, exist_ok=True)
+    (project_path / "src/lib").mkdir(exist_ok=True)
+    (project_path / "src/routes").mkdir(exist_ok=True)
+
     # Create app.html
-    app_html = '''<!DOCTYPE html>
+    app_html = """<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
@@ -95,13 +95,14 @@ def create_svelte_project_structure(project_path: Path, options: Dict[str, Any])
 	<body data-sveltekit-preload-data="hover">
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
-</html>'''
-    (project_path / 'src/app.html').write_text(app_html)
+</html>"""
+    (project_path / "src/app.html").write_text(app_html)
+
 
 def create_svelte_config_files(project_path: Path, options: Dict[str, Any]) -> None:
     """
     Create configuration files for a SvelteKit project.
-    
+
     Args:
         project_path: Base path for the project
         options: Project configuration options
@@ -120,8 +121,8 @@ const config = {
 
 export default config;
 """
-    (project_path / 'svelte.config.js').write_text(svelte_config)
-    
+    (project_path / "svelte.config.js").write_text(svelte_config)
+
     # Create tsconfig.json
     tsconfig = {
         "extends": "./.svelte-kit/tsconfig.json",
@@ -133,11 +134,11 @@ export default config;
             "resolveJsonModule": True,
             "skipLibCheck": True,
             "sourceMap": True,
-            "strict": True
-        }
+            "strict": True,
+        },
     }
-    (project_path / 'tsconfig.json').write_text(json.dumps(tsconfig, indent=2))
-    
+    (project_path / "tsconfig.json").write_text(json.dumps(tsconfig, indent=2))
+
     # Create .eslintrc.cjs
     eslint_config = """module.exports = {
   root: true,
@@ -170,8 +171,8 @@ export default config;
   ]
 };
 """
-    (project_path / '.eslintrc.cjs').write_text(eslint_config)
-    
+    (project_path / ".eslintrc.cjs").write_text(eslint_config)
+
     # Create .prettierrc
     prettier_config = {
         "semi": True,
@@ -181,10 +182,10 @@ export default config;
         "useTabs": False,
         "trailingComma": "es5",
         "bracketSpacing": True,
-        "arrowParens": "always"
+        "arrowParens": "always",
     }
-    (project_path / '.prettierrc').write_text(json.dumps(prettier_config, indent=2))
-    
+    (project_path / ".prettierrc").write_text(json.dumps(prettier_config, indent=2))
+
     # Create .gitignore
     gitignore = """# Logs
 logs
@@ -235,12 +236,13 @@ dist
 .Trashes
 ehthumbs.db
 Thumbs.db"""
-    (project_path / '.gitignore').write_text(gitignore)
+    (project_path / ".gitignore").write_text(gitignore)
+
 
 def create_svelte_components(project_path: Path, options: Dict[str, Any]) -> None:
     """
     Create initial Svelte components and application files.
-    
+
     Args:
         project_path: Base path for the project
         options: Project configuration options
@@ -259,8 +261,8 @@ declare global {
 
 export {};
 """
-    (project_path / 'src/app.d.ts').write_text(app_d_ts)
-    
+    (project_path / "src/app.d.ts").write_text(app_d_ts)
+
     # Create src/routes/+layout.svelte
     layout_svelte = """<script lang="ts">
   import '../app.css';
@@ -268,12 +270,12 @@ export {};
 
 <slot />
 """
-    (project_path / 'src/routes/+layout.svelte').write_text(layout_svelte)
-    
+    (project_path / "src/routes/+layout.svelte").write_text(layout_svelte)
+
     # Create src/routes/+page.svelte (homepage)
     page_svelte = """<script lang="ts">
   let count = 0;
-  
+
   function increment() {
     count += 1;
   }
@@ -282,13 +284,13 @@ export {};
 <main class="container">
   <h1>Welcome to SvelteKit</h1>
   <p>This is a new SvelteKit project.</p>
-  
+
   <div class="card">
     <button on:click={increment}>
       Count: {count}
     </button>
   </div>
-  
+
   <p>
     Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation
   </p>
@@ -301,12 +303,12 @@ export {};
     padding: 2rem;
     text-align: center;
   }
-  
+
   h1 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
   }
-  
+
   .card {
     padding: 2em;
     margin: 2em 0;
@@ -314,7 +316,7 @@ export {};
     background: #f5f5f5;
     display: inline-block;
   }
-  
+
   button {
     padding: 0.5em 1em;
     border: none;
@@ -324,21 +326,21 @@ export {};
     font-size: 1em;
     cursor: pointer;
   }
-  
+
   button:hover {
     background: #45a049;
   }
-  
+
   @media (prefers-color-scheme: dark) {
     :root {
       color: #f5f5f5;
       background: #1a1a1a;
     }
-    
+
     a {
       color: #646cff;
     }
-    
+
     button {
       background: #1a1a1a;
       border: 1px solid #646cff;
@@ -346,19 +348,19 @@ export {};
   }
 </style>
 """
-    (project_path / 'src/routes/+page.svelte').write_text(page_svelte)
-    
+    (project_path / "src/routes/+page.svelte").write_text(page_svelte)
+
     # Create src/app.css
     app_css = """/* Global styles */
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  
+
   color-scheme: light dark;
   color: #213547;
   background-color: #ffffff;
-  
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -412,18 +414,18 @@ button:focus-visible {
     color: rgba(255, 255, 255, 0.87);
     background-color: #242424;
   }
-  
+
   a:hover {
     color: #747bff;
   }
-  
+
   button {
     background-color: #1a1a1a;
   }
 }
 """
-    (project_path / 'src/app.css').write_text(app_css)
-    
+    (project_path / "src/app.css").write_text(app_css)
+
     # Create vitest.config.ts
     vitest_config = """import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { defineConfig } from "vitest/config";
@@ -437,8 +439,8 @@ export default defineConfig({
   },
 });
 """
-    (project_path / 'vitest.config.ts').write_text(vitest_config)
-    
+    (project_path / "vitest.config.ts").write_text(vitest_config)
+
     # Create vitest-setup.ts
     vitest_setup = """import { expect, afterEach } from 'vitest';
 import { cleanup } from '@testing-library/svelte';
@@ -452,6 +454,6 @@ afterEach(() => {
   cleanup();
 });
 """
-    (project_path / 'vitest-setup.ts').write_text(vitest_setup)
-    
+    (project_path / "vitest-setup.ts").write_text(vitest_setup)
+
     logger.info("Created SvelteKit components and application files")

@@ -24,22 +24,22 @@ def setup_tailwind(
     project_path: str,
     with_forms: bool = True,
     with_typography: bool = True,
-    with_container_queries: bool = False
+    with_container_queries: bool = False,
 ) -> Dict[str, Any]:
     """Set up Tailwind CSS in an existing project.
-    
+
     Args:
         project_path: Path to the project directory
         with_forms: Include @tailwindcss/forms plugin
         with_typography: Include @tailwindcss/typography plugin
         with_container_queries: Include @tailwindcss/container-queries plugin
-        
+
     Returns:
         Dictionary with setup results
     """
     try:
         path = Path(project_path)
-        
+
         # Install Tailwind and dependencies
         packages = ["tailwindcss", "postcss", "autoprefixer"]
         if with_forms:
@@ -48,7 +48,7 @@ def setup_tailwind(
             packages.append("@tailwindcss/typography")
         if with_container_queries:
             packages.append("@tailwindcss/container-queries")
-        
+
         # Detect package manager
         if (path / "pnpm-lock.yaml").exists():
             cmd = ["pnpm", "add", "-D"] + packages
@@ -56,12 +56,12 @@ def setup_tailwind(
             cmd = ["yarn", "add", "-D"] + packages
         else:
             cmd = ["npm", "install", "-D"] + packages
-        
+
         result = subprocess.run(cmd, cwd=project_path, capture_output=True, text=True, timeout=120)
-        
+
         if result.returncode != 0:
             return {"success": False, "error": result.stderr}
-        
+
         # Create tailwind.config.js
         plugins = []
         if with_forms:
@@ -70,7 +70,7 @@ def setup_tailwind(
             plugins.append("require('@tailwindcss/typography')")
         if with_container_queries:
             plugins.append("require('@tailwindcss/container-queries')")
-        
+
         tailwind_config = f"""/** @type {{import('tailwindcss').Config}} */
 export default {{
   content: [
@@ -113,11 +113,11 @@ export default {{
       }},
     }},
   }},
-  plugins: [{', '.join(plugins)}],
+  plugins: [{", ".join(plugins)}],
 }}
 """
         (path / "tailwind.config.js").write_text(tailwind_config)
-        
+
         # Create postcss.config.js
         postcss_config = """export default {
   plugins: {
@@ -127,7 +127,7 @@ export default {{
 }
 """
         (path / "postcss.config.js").write_text(postcss_config)
-        
+
         # Create/update src/index.css with Tailwind directives
         css_path = path / "src" / "index.css"
         css_content = """@tailwind base;
@@ -156,7 +156,7 @@ export default {{
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
-    
+
     /* Sidebar */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -188,7 +188,7 @@ export default {{
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    
+
     /* Sidebar dark */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -212,47 +212,51 @@ export default {{
 """
         css_path.parent.mkdir(parents=True, exist_ok=True)
         css_path.write_text(css_content)
-        
+
         return {
             "success": True,
             "project_path": str(project_path),
             "packages_installed": packages,
-            "files_created": [
-                "tailwind.config.js",
-                "postcss.config.js", 
-                "src/index.css"
-            ],
+            "files_created": ["tailwind.config.js", "postcss.config.js", "src/index.css"],
             "plugins": {
                 "forms": with_forms,
                 "typography": with_typography,
-                "container_queries": with_container_queries
-            }
+                "container_queries": with_container_queries,
+            },
         }
-        
+
     except Exception as e:
         logger.error(f"Error setting up Tailwind: {e}")
         return {"success": False, "error": str(e)}
 
 
-def setup_shadcn(
-    project_path: str,
-    components: Optional[List[str]] = None
-) -> Dict[str, Any]:
+def setup_shadcn(project_path: str, components: Optional[List[str]] = None) -> Dict[str, Any]:
     """Initialize shadcn/ui in a React/Next.js project.
-    
+
     Args:
         project_path: Path to the project directory
         components: List of components to install (default: button, card, dialog, dropdown-menu)
-        
+
     Returns:
         Dictionary with setup results
     """
     try:
         path = Path(project_path)
-        
+
         if components is None:
-            components = ["button", "card", "dialog", "dropdown-menu", "input", "label", "separator", "sheet", "tabs", "tooltip"]
-        
+            components = [
+                "button",
+                "card",
+                "dialog",
+                "dropdown-menu",
+                "input",
+                "label",
+                "separator",
+                "sheet",
+                "tabs",
+                "tooltip",
+            ]
+
         # Create components.json for shadcn
         components_json = {
             "$schema": "https://ui.shadcn.com/schema.json",
@@ -264,57 +268,72 @@ def setup_shadcn(
                 "css": "src/index.css",
                 "baseColor": "slate",
                 "cssVariables": True,
-                "prefix": ""
+                "prefix": "",
             },
-            "aliases": {
-                "components": "@/components",
-                "utils": "@/lib/utils"
-            }
+            "aliases": {"components": "@/components", "utils": "@/lib/utils"},
         }
-        
+
         (path / "components.json").write_text(json.dumps(components_json, indent=2))
-        
+
         # Create lib/utils.ts
         utils_dir = path / "src" / "lib"
         utils_dir.mkdir(parents=True, exist_ok=True)
-        
-        utils_ts = '''import { type ClassValue, clsx } from "clsx"
+
+        utils_ts = """import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
-'''
+"""
         (utils_dir / "utils.ts").write_text(utils_ts)
-        
+
         # Install clsx and tailwind-merge
         if (path / "pnpm-lock.yaml").exists():
-            cmd = ["pnpm", "add", "clsx", "tailwind-merge", "class-variance-authority", "lucide-react"]
+            cmd = [
+                "pnpm",
+                "add",
+                "clsx",
+                "tailwind-merge",
+                "class-variance-authority",
+                "lucide-react",
+            ]
         elif (path / "yarn.lock").exists():
-            cmd = ["yarn", "add", "clsx", "tailwind-merge", "class-variance-authority", "lucide-react"]
+            cmd = [
+                "yarn",
+                "add",
+                "clsx",
+                "tailwind-merge",
+                "class-variance-authority",
+                "lucide-react",
+            ]
         else:
-            cmd = ["npm", "install", "clsx", "tailwind-merge", "class-variance-authority", "lucide-react"]
-        
+            cmd = [
+                "npm",
+                "install",
+                "clsx",
+                "tailwind-merge",
+                "class-variance-authority",
+                "lucide-react",
+            ]
+
         subprocess.run(cmd, cwd=project_path, capture_output=True, text=True, timeout=120)
-        
+
         # Create components directory
         components_dir = path / "src" / "components" / "ui"
         components_dir.mkdir(parents=True, exist_ok=True)
-        
+
         return {
             "success": True,
             "project_path": str(project_path),
-            "files_created": [
-                "components.json",
-                "src/lib/utils.ts"
-            ],
+            "files_created": ["components.json", "src/lib/utils.ts"],
             "components_dir": str(components_dir),
             "next_steps": [
                 "Run: npx shadcn@latest add " + " ".join(components),
-                "Or manually add components from https://ui.shadcn.com/docs/components"
-            ]
+                "Or manually add components from https://ui.shadcn.com/docs/components",
+            ],
         }
-        
+
     except Exception as e:
         logger.error(f"Error setting up shadcn: {e}")
         return {"success": False, "error": str(e)}
@@ -324,10 +343,10 @@ def scaffold_dashboard(
     project_path: str,
     project_name: str = "dashboard",
     with_chatbot: bool = True,
-    ollama_model: str = "llama3.2:3b"
+    ollama_model: str = "llama3.2:3b",
 ) -> Dict[str, Any]:
     """Scaffold a complete admin dashboard with all features.
-    
+
     Creates a modern dashboard with:
     - Collapsible sidebar navigation
     - Topbar with theme toggle and user menu
@@ -335,24 +354,24 @@ def scaffold_dashboard(
     - Log viewer modal
     - Card/list view switcher
     - Popup chatbot with Ollama integration
-    
+
     Args:
         project_path: Path to the project directory (must have React + Tailwind)
         project_name: Name for the dashboard
         with_chatbot: Include the Ollama chatbot component
         ollama_model: Default Ollama model for chatbot
-        
+
     Returns:
         Dictionary with scaffold results
     """
     try:
         path = Path(project_path)
         templates_dir = Path(__file__).parent.parent / "templates" / "dashboard"
-        
+
         # Create dashboard components directory
         dashboard_dir = path / "src" / "components" / "dashboard"
         dashboard_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # List of components to copy
         components = [
             "Sidebar.tsx",
@@ -362,24 +381,24 @@ def scaffold_dashboard(
             "ViewSwitcher.tsx",
             "DashboardLayout.tsx",
         ]
-        
+
         if with_chatbot:
             components.append("Chatbot.tsx")
-        
+
         files_created = []
-        
+
         for component in components:
             template_file = templates_dir / f"{component}.template"
             if template_file.exists():
-                content = template_file.read_text(encoding='utf-8')
-                
+                content = template_file.read_text(encoding="utf-8")
+
                 # Replace placeholders if needed
                 content = content.replace("llama3.2:3b", ollama_model)
-                
+
                 output_file = dashboard_dir / component
-                output_file.write_text(content, encoding='utf-8')
+                output_file.write_text(content, encoding="utf-8")
                 files_created.append(f"src/components/dashboard/{component}")
-        
+
         # Create an index.ts for easy imports
         index_content = """// Dashboard components
 export { Sidebar } from './Sidebar';
@@ -391,12 +410,12 @@ export { DashboardLayout } from './DashboardLayout';
 """
         if with_chatbot:
             index_content += "export { Chatbot } from './Chatbot';\n"
-        
+
         (dashboard_dir / "index.ts").write_text(index_content)
         files_created.append("src/components/dashboard/index.ts")
-        
+
         # Create example App.tsx
-        app_example = f'''import {{ useState }} from 'react';
+        app_example = f"""import {{ useState }} from 'react';
 import {{ DashboardLayout }} from '@/components/dashboard';
 import {{ ViewSwitcher, DataView, DataCard, DataListItem, type ViewMode }} from '@/components/dashboard';
 import {{ Users, DollarSign, Activity, TrendingUp }} from 'lucide-react';
@@ -459,13 +478,13 @@ function App() {{
 }}
 
 export default App;
-'''
-        
+"""
+
         example_dir = path / "src" / "examples"
         example_dir.mkdir(parents=True, exist_ok=True)
         (example_dir / "DashboardApp.tsx").write_text(app_example)
         files_created.append("src/examples/DashboardApp.tsx")
-        
+
         return {
             "success": True,
             "project_path": str(project_path),
@@ -493,9 +512,9 @@ export default App;
                 "Copy src/examples/DashboardApp.tsx to src/App.tsx",
                 "Start Ollama if using chatbot: ollama serve",
                 "Run: npm run dev",
-            ]
+            ],
         }
-        
+
     except Exception as e:
         logger.error(f"Error scaffolding dashboard: {e}")
         return {"success": False, "error": str(e)}
@@ -506,6 +525,5 @@ def register_tools(mcp):
     mcp.tool()(setup_tailwind)
     mcp.tool()(setup_shadcn)
     mcp.tool()(scaffold_dashboard)
-    
-    logger.info("Dashboard tools registered successfully")
 
+    logger.info("Dashboard tools registered successfully")

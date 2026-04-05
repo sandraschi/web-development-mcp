@@ -1,18 +1,6 @@
-"""
-Web Development MCP - FastMCP 2.10 Implementation
+"""Web Development MCP - AI-Powered 3D Creation."""
 
-Universal web development operations server supporting:
-- Frontend frameworks: React, Vue, Svelte, Next.js
-- Package management: npm, yarn, pnpm operations
-- Build tools: Vite, TypeScript, ESLint configuration
-- Code generation: Components, templates, best practices
-
-Austrian dev efficiency: One unified interface for entire web development stack.
-"""
-
-__version__ = "1.0.0"
-__author__ = "Sandra"
-
-from .mcp_server import mcp
-
-__all__ = ["mcp"]
+__version__ = "0.2.0"
+__author__ = "FlowEngineer sandraschi"
+__email__ = "sandraschi@example.com"
+__license__ = "MIT"

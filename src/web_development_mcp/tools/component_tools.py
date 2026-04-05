@@ -5,14 +5,15 @@ Handles smart component creation with best practices and Austrian dev standards.
 """
 
 import logging
-from typing import Any, Dict, Optional
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
+
 def register_tools(mcp):
     """Register component generation tools with the MCP server."""
-    
+
     @mcp.tool()
     def generate_react_component(
         project_path: str,
@@ -20,10 +21,10 @@ def register_tools(mcp):
         component_type: str = "functional",
         include_styles: bool = True,
         include_tests: bool = True,
-        props_interface: Optional[Dict[str, str]] = None
+        props_interface: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """Generate a React component with TypeScript and best practices.
-        
+
         Args:
             project_path: Path to the project directory
             component_name: Name of the component (PascalCase)
@@ -34,18 +35,18 @@ def register_tools(mcp):
         """
         try:
             path = Path(project_path)
-            
+
             # Validate component name
             if not _is_valid_component_name(component_name):
                 return {
                     "success": False,
-                    "error": "Component name must be PascalCase (e.g., MyComponent)"
+                    "error": "Component name must be PascalCase (e.g., MyComponent)",
                 }
-            
+
             # Create component directory
             component_dir = path / "src" / "components" / component_name
             component_dir.mkdir(parents=True, exist_ok=True)
-            
+
             # Generate props interface
             props_code = ""
             if props_interface:
@@ -53,12 +54,12 @@ def register_tools(mcp):
                 for prop_name, prop_type in props_interface.items():
                     props_code += f"  {prop_name}: {prop_type};\n"
                 props_code += "}\n\n"
-            
+
             # Generate functional component
             component_code = f"""import React from 'react';
 {f"import styles from './{component_name}.module.css';" if include_styles else ""}
 
-{props_code}export const {component_name}: React.FC{f"<{component_name}Props>" if props_interface else ""} = ({{{', '.join(props_interface.keys()) if props_interface else ""}}}) => {{
+{props_code}export const {component_name}: React.FC{f"<{component_name}Props>" if props_interface else ""} = ({{{", ".join(props_interface.keys()) if props_interface else ""}}}) => {{
   return (
     <div className={{{f"styles.{component_name.lower()}" if include_styles else f'"{component_name.lower()}"'}}}>
       <h2>{component_name} Component</h2>
@@ -69,14 +70,14 @@ def register_tools(mcp):
 
 export default {component_name};
 """
-            
+
             # Write component file
             component_file = component_dir / f"{component_name}.tsx"
-            with open(component_file, 'w', encoding='utf-8') as f:
+            with open(component_file, "w", encoding="utf-8") as f:
                 f.write(component_code)
-            
+
             files_created = [f"src/components/{component_name}/{component_name}.tsx"]
-            
+
             # Generate styles
             if include_styles:
                 styles_content = f""".{component_name.lower()} {{
@@ -97,13 +98,13 @@ export default {component_name};
   line-height: 1.6;
 }}
 """
-                
+
                 styles_file = component_dir / f"{component_name}.module.css"
-                with open(styles_file, 'w', encoding='utf-8') as f:
+                with open(styles_file, "w", encoding="utf-8") as f:
                     f.write(styles_content)
-                
+
                 files_created.append(f"src/components/{component_name}/{component_name}.module.css")
-            
+
             # Generate tests
             if include_tests:
                 test_content = f"""import {{ render, screen }} from '@testing-library/react';
@@ -116,25 +117,27 @@ describe('{component_name}', () => {{
   }});
 }});
 """
-                
+
                 test_dir = component_dir / "__tests__"
                 test_dir.mkdir(exist_ok=True)
                 test_file = test_dir / f"{component_name}.test.tsx"
-                
-                with open(test_file, 'w', encoding='utf-8') as f:
+
+                with open(test_file, "w", encoding="utf-8") as f:
                     f.write(test_content)
-                
-                files_created.append(f"src/components/{component_name}/__tests__/{component_name}.test.tsx")
-            
+
+                files_created.append(
+                    f"src/components/{component_name}/__tests__/{component_name}.test.tsx"
+                )
+
             # Create index file for easier imports
             index_content = f"export {{ default, {component_name} }} from './{component_name}';\n"
-            
+
             index_file = component_dir / "index.ts"
-            with open(index_file, 'w', encoding='utf-8') as f:
+            with open(index_file, "w", encoding="utf-8") as f:
                 f.write(index_content)
-            
+
             files_created.append(f"src/components/{component_name}/index.ts")
-            
+
             return {
                 "success": True,
                 "component_name": component_name,
@@ -145,29 +148,26 @@ describe('{component_name}', () => {{
                     "CSS modules" if include_styles else "No styles",
                     "Test file" if include_tests else "No tests",
                     "Index file for clean imports",
-                    "Austrian dev standards"
+                    "Austrian dev standards",
                 ],
                 "import_statement": f"import {{ {component_name} }} from '@/components/{component_name}';",
-                "usage_example": f"<{component_name} />"
+                "usage_example": f"<{component_name} />",
             }
-            
+
         except Exception as e:
             logger.error(f"Error generating React component: {e}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
+            return {"success": False, "error": str(e)}
+
     @mcp.tool()
     def generate_vue_component(
         project_path: str,
         component_name: str,
         composition_api: bool = True,
         include_styles: bool = True,
-        include_tests: bool = True
+        include_tests: bool = True,
     ) -> Dict[str, Any]:
         """Generate a Vue 3 component with TypeScript and Composition API.
-        
+
         Args:
             project_path: Path to the project directory
             component_name: Name of the component (PascalCase)
@@ -177,16 +177,13 @@ describe('{component_name}', () => {{
         """
         try:
             path = Path(project_path)
-            
+
             if not _is_valid_component_name(component_name):
-                return {
-                    "success": False,
-                    "error": "Component name must be PascalCase"
-                }
-            
+                return {"success": False, "error": "Component name must be PascalCase"}
+
             component_dir = path / "src" / "components"
             component_dir.mkdir(parents=True, exist_ok=True)
-            
+
             # Generate Vue component with Composition API
             if composition_api:
                 component_code = f"""<template>
@@ -217,7 +214,8 @@ const handleClick = () => {{
 }};
 </script>
 
-{f'''<style scoped>
+{
+                    f'''<style scoped>
 .{component_name.lower()} {{
   padding: 1rem;
   border: 1px solid #e0e0e0;
@@ -235,16 +233,19 @@ const handleClick = () => {{
   color: #666;
   line-height: 1.6;
 }}
-</style>''' if include_styles else ""}
+</style>'''
+                    if include_styles
+                    else ""
+                }
 """
-            
+
             # Write component file
             component_file = component_dir / f"{component_name}.vue"
-            with open(component_file, 'w', encoding='utf-8') as f:
+            with open(component_file, "w", encoding="utf-8") as f:
                 f.write(component_code)
-            
+
             files_created = [f"src/components/{component_name}.vue"]
-            
+
             # Generate test file
             if include_tests:
                 test_content = f"""import {{ mount }} from '@vue/test-utils';
@@ -265,13 +266,13 @@ describe('{component_name}', () => {{
   }});
 }});
 """
-                
+
                 test_file = component_dir / f"{component_name}.test.ts"
-                with open(test_file, 'w', encoding='utf-8') as f:
+                with open(test_file, "w", encoding="utf-8") as f:
                     f.write(test_content)
-                
+
                 files_created.append(f"src/components/{component_name}.test.ts")
-            
+
             return {
                 "success": True,
                 "component_name": component_name,
@@ -283,27 +284,22 @@ describe('{component_name}', () => {{
                     "Props interface",
                     "Event emitters",
                     "Scoped styles" if include_styles else "No styles",
-                    "Test file" if include_tests else "No tests"
+                    "Test file" if include_tests else "No tests",
                 ],
                 "import_statement": f"import {component_name} from '@/components/{component_name}.vue';",
-                "usage_example": f"<{component_name} title=\"My Title\" @click=\"handleClick\" />"
+                "usage_example": f'<{component_name} title="My Title" @click="handleClick" />',
             }
-            
+
         except Exception as e:
             logger.error(f"Error generating Vue component: {e}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
+            return {"success": False, "error": str(e)}
+
     @mcp.tool()
     def generate_custom_hook(
-        project_path: str,
-        hook_name: str,
-        hook_type: str = "state"
+        project_path: str, hook_name: str, hook_type: str = "state"
     ) -> Dict[str, Any]:
         """Generate a custom React hook with TypeScript.
-        
+
         Args:
             project_path: Path to the project directory
             hook_name: Name of the hook (should start with 'use')
@@ -311,17 +307,17 @@ describe('{component_name}', () => {{
         """
         try:
             path = Path(project_path)
-            
+
             # Validate hook name
-            if not hook_name.startswith('use') or not hook_name[3:4].isupper():
+            if not hook_name.startswith("use") or not hook_name[3:4].isupper():
                 return {
                     "success": False,
-                    "error": "Hook name must start with 'use' followed by PascalCase (e.g., useMyHook)"
+                    "error": "Hook name must start with 'use' followed by PascalCase (e.g., useMyHook)",
                 }
-            
+
             hooks_dir = path / "src" / "hooks"
             hooks_dir.mkdir(parents=True, exist_ok=True)
-            
+
             # Generate hook based on type
             if hook_type == "state":
                 hook_code = f"""import {{ useState, useCallback }} from 'react';
@@ -358,7 +354,7 @@ export const {hook_name} = (initialValue: string = '') => {{
   }};
 }};
 """
-            
+
             elif hook_type == "fetch":
                 hook_code = f"""import {{ useState, useEffect, useCallback }} from 'react';
 
@@ -383,17 +379,17 @@ export const {hook_name} = <T = any>(options: {hook_name.capitalize()}Options) =
 
   const fetchData = useCallback(async () => {{
     setState(prev => ({{ ...prev, loading: true, error: null }}));
-    
+
     try {{
       const response = await fetch(options.url, {{
         method: options.method || 'GET',
         headers: options.headers
       }});
-      
+
       if (!response.ok) {{
         throw new Error(`HTTP error! status: ${{response.status}}`);
       }}
-      
+
       const data = await response.json();
       setState({{ data, loading: false, error: null }});
     }} catch (error) {{
@@ -415,29 +411,28 @@ export const {hook_name} = <T = any>(options: {hook_name.capitalize()}Options) =
   }};
 }};
 """
-            
+
             # Write hook file
             hook_file = hooks_dir / f"{hook_name}.ts"
-            with open(hook_file, 'w', encoding='utf-8') as f:
+            with open(hook_file, "w", encoding="utf-8") as f:
                 f.write(hook_code)
-            
+
             return {
                 "success": True,
                 "hook_name": hook_name,
                 "hook_type": hook_type,
                 "file_created": f"src/hooks/{hook_name}.ts",
                 "import_statement": f"import {{ {hook_name} }} from '@/hooks/{hook_name}';",
-                "usage_example": f"const {{ /* destructure return values */ }} = {hook_name}(/* parameters */);"
+                "usage_example": f"const {{ /* destructure return values */ }} = {hook_name}(/* parameters */);",
             }
-            
+
         except Exception as e:
             logger.error(f"Error generating custom hook: {e}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
+
 
 def _is_valid_component_name(name: str) -> bool:
     """Validate component name follows PascalCase convention."""
     import re
-    return bool(re.match(r'^[A-Z][a-zA-Z0-9]*$', name))
+
+    return bool(re.match(r"^[A-Z][a-zA-Z0-9]*$", name))

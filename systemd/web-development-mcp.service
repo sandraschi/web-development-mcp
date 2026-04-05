@@ -1,0 +1,52 @@
+# Web Development MCP Systemd Service
+# Install with: sudo cp web-development-mcp.service /etc/systemd/system/
+# Enable with: sudo systemctl enable web-development-mcp
+# Start with: sudo systemctl start web-development-mcp
+
+[Unit]
+Description=Web Development MCP Server - AI-Powered 3D Creation
+Documentation=https://github.com/sandraschi/web-development-mcp
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=mcp
+Group=mcp
+Environment=PYTHONPATH=/opt/web-development-mcp/src
+Environment=MCP_ENV=production
+Environment=Web Development_PATH=/usr/bin/Web Development
+ExecStart=/opt/web-development-mcp/venv/bin/python -m web_development_mcp.cli --stdio
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/web-development-mcp /tmp /var/tmp
+ProtectHome=yes
+PrivateDevices=yes
+
+# Resource limits
+MemoryLimit=2G
+CPUQuota=200%
+
+# Restart settings
+Restart=always
+RestartSec=5
+StartLimitInterval=400
+StartLimitBurst=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=web-development-mcp
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+
+

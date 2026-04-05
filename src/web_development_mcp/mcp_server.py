@@ -6,6 +6,7 @@ Austrian dev efficiency: One unified interface for entire web development stack.
 """
 
 import logging
+
 from fastmcp import FastMCP
 
 # Configure logging
@@ -13,16 +14,19 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize FastMCP server
-mcp = FastMCP("Web Development")
+mcp = FastMCP("web-development")
 
 # Import and register tool modules
 from .tools import (
-    scaffolding_tools,
     package_tools,
+    scaffolding_tools,
+    agentic_tools,
     build_tools,
     component_tools,
-    dashboard_tools
+    dashboard_tools,
+    help_tools,
 )
+from .transport import run_server
 
 # Register all tool groups
 scaffolding_tools.register_tools(mcp)
@@ -30,10 +34,12 @@ package_tools.register_tools(mcp)
 build_tools.register_tools(mcp)
 component_tools.register_tools(mcp)
 dashboard_tools.register_tools(mcp)
+agentic_tools.register_tools(mcp)
+help_tools.register_tools(mcp)
 
 logger.info("Web Development MCP server initialized with all tool modules")
 
 
 def main():
     """Run the MCP server."""
-    mcp.run()
+    run_server(mcp, server_name="web-development")
