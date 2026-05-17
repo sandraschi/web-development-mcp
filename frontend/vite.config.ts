@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => ({
   },
   
   server: {
-    port: 3000,
+    port: 10852,
     open: true,
     host: true,
     strictPort: true,
