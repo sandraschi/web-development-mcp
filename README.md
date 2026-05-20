@@ -1,14 +1,11 @@
 # Web Development MCP 
 
-[![FastMCP Version](https://img.shields.io/badge/FastMCP-3.1.0-blue?style=flat-square&logo=python&logoColor=white)](https://github.com/sandraschi/fastmcp) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Linted with Biome](https://img.shields.io/badge/Linted_with-Biome-60a5fa?style=flat-square&logo=biome&logoColor=white)](https://biomejs.dev/) [![Built with Just](https://img.shields.io/badge/Built_with-Just-000000?style=flat-square&logo=gnu-bash&logoColor=white)](https://github.com/casey/just)
-
 <p align="center">
-  <img src="https://img.shields.io/badge/MCP-Standard-blue?style=for-the-badge&logo=anthropic&logoColor=white" alt="MCP Standard"/>
-  <img src="https://img.shields.io/badge/FastMCP-2.14.3+-orange?style=for-the-badge&logo=anthropic&logoColor=white" alt="FastMCP 3.1.0+"/>
-  <img src="https://img.shields.io/badge/Glama-Indexed-green?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Glama Indexed"/>
-  <img src="https://img.shields.io/badge/Production-Ready-green?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Production Ready"/>
+  <a href="https://github.com/casey/just"><img src="https://img.shields.io/badge/just-ready_to_go-7c5cfc?style=flat-square&logo=just&logoColor=white" alt="Just"></a>
+  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.13+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.2-7c5cfc?style=flat-square" alt="FastMCP"></a>
 </p>
-
 
 Universal web development operations MCP server supporting modern frontend frameworks, build tools, and development workflows.
 
@@ -88,86 +85,80 @@ uv pip install -e .
 
 ## Quick Start
 
+```powershell
+git clone https://github.com/sandraschi/web-development-mcp
+cd web-development-mcp
+just
+```
+
+This opens an interactive dashboard showing all available commands. Run `just bootstrap` to install dependencies, then `just serve` or `just dev` to start.
+
+### Manual Setup
+
+If you don't have `just` installed:
 ### 1. Create a New React Project
-```python
 # List available frameworks
 list_available_frameworks()
-
 # Create React app with TypeScript
 create_react_app(
-    project_name="my--app",
-    target_directory="./projects",
-    options={
-        "router": True,
-        "testing": True,
-        "eslint_strict": True
-    }
+project_name="my--app",
+target_directory="./projects",
+options={
+"router": True,
+"testing": True,
+"eslint_strict": True
+}
 )
-```
-
 ### 2. Package Management
-```python
 # Auto-detect package manager
 detect_package_manager("./my--app")
-
 # Install packages
 install_packages(
-    project_path="./my--app",
-    packages=["axios", "@tanstack/react-query"],
-    dev_dependencies=False
+project_path="./my--app",
+packages=["axios", "@tanstack/react-query"],
+dev_dependencies=False
 )
-
 # Analyze project
 analyze_package_json("./my--app")
-```
-
 ### 3. Configure Development Tools
-```python
 # Setup TypeScript with strict rules
 configure_typescript(
-    project_path="./my--app",
-    strict_mode=True,
-    include_react=True
+project_path="./my--app",
+strict_mode=True,
+include_react=True
 )
-
 # Configure ESLint with Austrian standards
 configure_eslint(
-    project_path="./my--app",
-    framework="react",
-    typescript=True,
-    strict_rules=True
+project_path="./my--app",
+framework="react",
+typescript=True,
+strict_rules=True
 )
-
 # Optimize Vite configuration
 configure_vite(
-    project_path="./my--app",
-    framework="react",
-    port=5173
+project_path="./my--app",
+framework="react",
+port=5173
 )
-```
-
 ### 4. Generate Components
-```python
 # Generate React component
 generate_react_component(
-    project_path="./my--app",
-    component_name="UserCard",
-    include_styles=True,
-    include_tests=True,
-    props_interface={
-        "name": "string",
-        "email": "string",
-        "avatar": "string"
-    }
+project_path="./my--app",
+component_name="UserCard",
+include_styles=True,
+include_tests=True,
+props_interface={
+"name": "string",
+"email": "string",
+"avatar": "string"
+}
 )
-
 # Generate custom hook
 generate_custom_hook(
-    project_path="./my--app",
-    hook_name="useUserData",
-    hook_type="fetch"
+project_path="./my--app",
+hook_name="useUserData",
+hook_type="fetch"
 )
-```
 
 ## Available Tools
 

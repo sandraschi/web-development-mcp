@@ -6,8 +6,10 @@ Austrian dev efficiency: One unified interface for entire web development stack.
 """
 
 import logging
+import os
 
 from fastmcp import FastMCP
+from fastmcp.server import create_proxy
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -15,6 +17,19 @@ logger = logging.getLogger(__name__)
 
 # Initialize FastMCP server
 mcp = FastMCP("web-development")
+
+# MCP Bridge: proxy tools from other MCP servers via MCP_BRIDGE_URLS
+_bridge_proxies: list[str] = []
+bridge_urls = os.getenv("MCP_BRIDGE_URLS", "")
+if bridge_urls:
+    for url in bridge_urls.split(","):
+        url = url.strip()
+        if url:
+            try:
+                mcp.add_provider(create_proxy(url))
+                _bridge_proxies.append(url)
+            except Exception:
+                pass
 
 # Import and register tool modules
 from .tools import (
