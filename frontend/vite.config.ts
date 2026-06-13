@@ -53,6 +53,7 @@ export default defineConfig(({ mode }) => ({
   },
   
   server: {
+    allowedHosts: ['goliath'],
     port: 10852,
     open: true,
     host: true,

@@ -10,6 +10,8 @@ import os
 
 from fastmcp import FastMCP
 from fastmcp.server import create_proxy
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -17,6 +19,11 @@ logger = logging.getLogger(__name__)
 
 # Initialize FastMCP server
 mcp = FastMCP("web-development")
+
+
+@mcp.custom_route("/health", methods=["GET"])
+async def health_check(request: Request) -> JSONResponse:
+    return JSONResponse({"status": "healthy", "server": "web-development-mcp"})
 
 # MCP Bridge: proxy tools from other MCP servers via MCP_BRIDGE_URLS
 _bridge_proxies: list[str] = []

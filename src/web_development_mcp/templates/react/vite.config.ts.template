@@ -12,6 +12,7 @@ export default defineConfig({
   },
   
   server: {
+    allowedHosts: ['goliath'],
     port: {{port|default(5173)}},
     open: true,
     host: true
