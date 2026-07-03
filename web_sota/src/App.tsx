@@ -9,6 +9,7 @@ import { Chat } from '@/pages/chat';
 import { Apps } from '@/pages/apps';
 import { Control } from '@/pages/control';
 import { Settings } from '@/pages/settings';
+import Logging from '@/pages/Logging';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="/apps" element={<Apps />} />
           <Route path="/tools" element={<Control />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/logs" element={<Logging />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AppLayout>

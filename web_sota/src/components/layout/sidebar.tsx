@@ -33,6 +33,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         { href: '/apps', label: 'Apps Hub', icon: Grid },
         { href: '/tools', label: 'Tools Lab', icon: Terminal },
         { href: '/settings', label: 'Settings', icon: Settings },
+    { href: '/logs', label: 'Logs', icon: Globe },
     ];
 
     return (
