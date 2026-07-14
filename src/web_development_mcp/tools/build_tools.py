@@ -106,69 +106,48 @@ def register_tools(mcp):
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    def configure_eslint(
+    def configure_biome(
         project_path: str,
         framework: str = "react",
         typescript: bool = True,
         strict_rules: bool = True,
     ) -> dict[str, Any]:
-        """Create ESLint configuration with Austrian dev standards.
+        """Create Biome configuration (replaces ESLint + Prettier).
 
         Args:
             project_path: Path to the project directory
             framework: Frontend framework (react, vue, svelte)
-            typescript: Include TypeScript ESLint rules
-            strict_rules: Use strict rule set for code quality
+            typescript: Include TypeScript strict rules
+            strict_rules: Use strict rule set
         """
         try:
             path = Path(project_path)
-            eslint_path = path / ".eslintrc.json"
-
-            # Base ESLint configuration
-            eslint_config = {
-                "env": {"browser": True, "es2020": True, "node": True},
-                "extends": ["eslint:recommended"],
-                "parserOptions": {"ecmaVersion": "latest", "sourceType": "module"},
-                "rules": {},
+            biome_config = {
+                "$schema": "https://biomejs.dev/schemas/1.9.0/schema.json",
+                "organizeImports": {"enabled": True},
+                "linter": {
+                    "enabled": True,
+                    "rules": {
+                        "recommended": True,
+                        "complexity": {"noUselessFragments": "error"},
+                        "correctness": {"useExhaustiveDependencies": "warn" if framework == "react" else "off"},
+                        "style": {"noNonNullAssertion": "off"},
+                        "suspicious": {"noConsole": "warn"},
+                    },
+                },
+                "formatter": {"enabled": True, "indentStyle": "space", "indentWidth": 2, "lineWidth": 100},
+                "javascript": {
+                    "formatter": {"quoteStyle": "single", "trailingCommas": "all", "semicolons": "always"}
+                },
             }
-
-            # TypeScript configuration
-            if typescript:
-                eslint_config["extends"].extend(
-                    [
-                        "@typescript-eslint/recommended",
-                        "@typescript-eslint/recommended-requiring-type-checking",
-                    ]
-                )
-                eslint_config["parser"] = "@typescript-eslint/parser"
-                eslint_config["plugins"] = ["@typescript-eslint"]
-                eslint_config["parserOptions"]["project"] = ["./tsconfig.json"]
-
-            # Framework-specific configuration
-            if framework == "react":
-                eslint_config["extends"].extend(["plugin:react/recommended", "plugin:react-hooks/recommended"])
-                eslint_config["plugins"] = eslint_config.get("plugins", []) + [
-                    "react",
-                    "react-hooks",
-                    "react-refresh",
-                ]
-                eslint_config["settings"] = {"react": {"version": "detect"}}
-                eslint_config["rules"]["react-refresh/only-export-components"] = [
-                    "warn",
-                    {"allowConstantExport": True},
-                ]
-            elif framework == "vue":
-                eslint_config["extends"].append("plugin:vue/vue3-recommended")
-                eslint_config["plugins"] = eslint_config.get("plugins", []) + ["vue"]
-                eslint_config["parser"] = "vue-eslint-parser"
-                if typescript:
-                    eslint_config["parserOptions"]["parser"] = "@typescript-eslint/parser"
-
-            # Austrian dev standards (strict rules)
             if strict_rules:
-                eslint_config["rules"].update(
-                    {
-                        "no-console": "warn",
+                biome_config["linter"]["rules"]["correctness"]["noUnusedVariables"] = "error"
+            biome_path = path / "biome.json"
+            with open(biome_path, "w", encoding="utf-8") as f:
+                json.dump(biome_config, f, indent=2)
+            return {"success": True, "config_files": ["biome.json"], "message": "Biome configured (replaces ESLint + Prettier)"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
                         "no-debugger": "error",
                         "no-unused-vars": "error",
                         "no-undef": "error",
@@ -238,7 +217,7 @@ coverage/
 
     @mcp.tool()
     def configure_vite(
-        project_path: str, framework: str = "react", port: int = 5173, enable_https: bool = False
+        project_path: str, framework: str = "react", port: int = 10700, enable_https: bool = False
     ) -> dict[str, Any]:
         """Create Vite configuration optimized for development.
 

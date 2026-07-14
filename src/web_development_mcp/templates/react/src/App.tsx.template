@@ -1,53 +1,39 @@
 import { useState } from 'react';
-import './App.css';
-{% if router %}
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-
-// Import your pages here
-import HomePage from './pages/HomePage';
-import AboutPage from './pages/AboutPage';
-{% endif %}
+import { motion } from 'framer-motion';
+import { Activity, Github } from 'lucide-react';
 
 function App() {
   const [count, setCount] = useState(0);
 
   return (
-    <div className="app">
-      {% if router %}
-      <Router>
-        <nav>
-          <ul>
-            <li><Link to="/">Home</Link></li>
-            <li><Link to="/about">About</Link></li>
-          </ul>
-        </nav>
-        
-        <main>
-          <Routes>
-            <Route path="/" element={
-              <HomePage count={count} onIncrement={() => setCount(c => c + 1)} />
-            } />
-            <Route path="/about" element={<AboutPage />} />
-          </Routes>
-        </main>
-      </Router>
-      {% else %}
-      <div>
-        <h1>Welcome to {{project_name}}</h1>
-        <div className="card">
-          <button onClick={() => setCount((count) => count + 1)}>
-            Count is {count}
-          </button>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test HMR
-          </p>
-        </div>
-        <p className="read-the-docs">
-          Click on the Vite and React logos to learn more
-        </p>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-8"
+    >
+      <Activity className="w-12 h-12 text-blue-400 mb-4" />
+      <h1 className="text-2xl font-semibold mb-2">{project_name}</h1>
+      <p className="text-zinc-400 mb-6">Scaffolded with web-development-mcp</p>
+
+      <div className="flex items-center gap-4 mb-8">
+        <button
+          onClick={() => setCount((c) => c + 1)}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+        >
+          count is {count}
+        </button>
       </div>
-      {% endif %}
-    </div>
+
+      <a
+        href="https://github.com/{{project_name}}"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300"
+      >
+        <Github size={14} />
+        View on GitHub
+      </a>
+    </motion.div>
   );
 }
 

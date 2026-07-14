@@ -262,52 +262,46 @@ def _write_json_file(path: Path, data: dict) -> None:
 
 
 def _create_react_package_json(project_name: str, options: dict) -> dict:
-    """Create package.json for React project."""
-    dependencies = {"react": "^18.2.0", "react-dom": "^18.2.0"}
+    """Create package.json for React project (SOTA fleet stack)."""
+    dependencies = {
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+        "lucide-react": "^0.468.0",
+        "framer-motion": "^11.12.0",
+        "clsx": "^2.1.1",
+    }
 
     dev_dependencies = {
-        "@types/react": "^18.2.0",
-        "@types/react-dom": "^18.2.0",
-        "@vitejs/plugin-react": "^4.2.0",
-        "typescript": "^5.3.0",
-        "vite": "^5.0.0",
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0",
+        "@vitejs/plugin-react": "^4.3.0",
+        "typescript": "^5.7.0",
+        "vite": "^6.0.0",
+        "tailwindcss": "^4.0.0",
+        "@tailwindcss/vite": "^4.0.0",
+        "@biomejs/biome": "^1.9.0",
     }
 
     if options.get("router"):
-        dependencies["react-router-dom"] = "^6.20.0"
-        dev_dependencies["@types/react-router-dom"] = "^5.3.0"
+        dependencies["react-router-dom"] = "^7.0.0"
+
+    if options.get("zustand"):
+        dependencies["zustand"] = "^5.0.0"
 
     if options.get("testing"):
         dev_dependencies.update(
             {
-                "@testing-library/react": "^14.1.0",
-                "@testing-library/jest-dom": "^6.1.0",
-                "@testing-library/user-event": "^14.5.0",
-                "vitest": "^1.0.0",
-                "jsdom": "^23.0.0",
+                "vitest": "^2.0.0",
+                "jsdom": "^25.0.0",
             }
         )
-
-    if options.get("eslint_strict"):
-        dev_dependencies.update(
-            {
-                "eslint": "^8.55.0",
-                "@typescript-eslint/eslint-plugin": "^6.14.0",
-                "@typescript-eslint/parser": "^6.14.0",
-                "eslint-plugin-react": "^7.33.0",
-                "eslint-plugin-react-hooks": "^4.6.0",
-                "eslint-plugin-react-refresh": "^0.4.5",
-            }
-        )
-
-    if options.get("prettier"):
-        dev_dependencies.update({"prettier": "^3.1.0", "eslint-config-prettier": "^9.1.0"})
 
     scripts = {
-        "dev": "vite",
+        "dev": "vite --port 10700",
         "build": "tsc && vite build",
-        "preview": "vite preview",
-        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+        "preview": "vite preview --port 10700",
+        "lint": "biome check src/",
+        "fmt": "biome check --write src/",
     }
 
     if options.get("testing"):
@@ -358,8 +352,7 @@ def _create_react_config_files(project_path: Path, options: dict) -> None:
     config_files = [
         "vite.config.ts.template",
         "tsconfig.json.template",
-        ".eslintrc.json.template",
-        ".prettierrc.template",
+        "biome.json.template",
         ".gitignore.template",
         "index.html.template",
     ]

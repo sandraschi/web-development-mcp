@@ -1,5 +1,5 @@
 """
-Package management tools for npm, yarn, and pnpm.
+Package management tools for npm, yarn, pnpm, and bun.
 
 Handles dependency installation, updates, auditing, and optimization.
 """
@@ -90,7 +90,9 @@ def detect_package_manager(project_path: str) -> dict[str, Any]:
             package_managers.append("npm")
         if (path / "yarn.lock").exists():
             package_managers.append("yarn")
-        if (path / "pnpm-lock.yaml").exists():
+            if (path / "bun.lock").exists():
+                package_managers.append("bun")
+            if (path / "pnpm-lock.yaml").exists():
             package_managers.append("pnpm")
 
         # Check for package.json
@@ -100,6 +102,8 @@ def detect_package_manager(project_path: str) -> dict[str, Any]:
         primary = None
         if len(package_managers) == 1:
             primary = package_managers[0]
+        elif "bun" in package_managers:
+            primary = "bun"  # bun takes precedence
         elif "pnpm" in package_managers:
             primary = "pnpm"  # pnpm takes precedence
         elif "yarn" in package_managers:
@@ -117,6 +121,7 @@ def detect_package_manager(project_path: str) -> dict[str, Any]:
             "lock_files": {
                 "npm": (path / "package-lock.json").exists(),
                 "yarn": (path / "yarn.lock").exists(),
+                "bun": (path / "bun.lock").exists(),
                 "pnpm": (path / "pnpm-lock.yaml").exists(),
             },
         }
@@ -161,6 +166,11 @@ def install_packages(
             cmd = ["yarn", "add"]
             if dev_dependencies:
                 cmd.append("--dev")
+            cmd.extend(packages)
+        elif package_manager == "bun":
+            cmd = ["bun", "add"]
+            if dev_dependencies:
+                cmd.append("-d")
             cmd.extend(packages)
         elif package_manager == "pnpm":
             cmd = ["pnpm", "add"]
@@ -308,10 +318,12 @@ def update_packages(
         if check_only:
             if package_manager == "npm":
                 cmd = ["npm", "outdated", "--json"]
-            elif package_manager == "yarn":
-                cmd = ["yarn", "outdated", "--json"]
-            elif package_manager == "pnpm":
-                cmd = ["pnpm", "outdated", "--json"]
+        elif package_manager == "yarn":
+            cmd = ["yarn", "outdated", "--json"]
+        elif package_manager == "bun":
+            cmd = ["bun", "outdated", "--json"]
+        elif package_manager == "pnpm":
+            cmd = ["pnpm", "outdated", "--json"]
             else:
                 return {"success": False, "error": f"Unsupported: {package_manager}"}
         else:
@@ -321,6 +333,10 @@ def update_packages(
                     cmd.extend(packages)
             elif package_manager == "yarn":
                 cmd = ["yarn", "upgrade"]
+                if packages:
+                    cmd.extend(packages)
+            elif package_manager == "bun":
+                cmd = ["bun", "update"]
                 if packages:
                     cmd.extend(packages)
             elif package_manager == "pnpm":
@@ -379,6 +395,8 @@ def remove_packages(project_path: str, packages: list[str], package_manager: str
             cmd = ["npm", "uninstall"] + packages
         elif package_manager == "yarn":
             cmd = ["yarn", "remove"] + packages
+        elif package_manager == "bun":
+            cmd = ["bun", "remove"] + packages
         elif package_manager == "pnpm":
             cmd = ["pnpm", "remove"] + packages
         else:
