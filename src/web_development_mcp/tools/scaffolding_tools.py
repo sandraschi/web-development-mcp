@@ -43,7 +43,7 @@ def register_tools(mcp):
             "vue": {
                 "name": "Vue 3",
                 "description": "Progressive JavaScript framework",
-                "features": ["TypeScript", "Vite", "Vue Router", "Pinia", "ESLint"],
+                "features": ["TypeScript", "Vite", "Vue Router", "Pinia", "Biome"],
                 "use_cases": ["SPAs", "Progressive web apps", "Quick prototypes"],
                 "popularity": "Very popular",
                 "learning_curve": "Easy",
@@ -162,7 +162,7 @@ def register_tools(mcp):
                 "features_included": [
                     "TypeScript",
                     "Vite",
-                    "ESLint" + (" (strict)" if opts["eslint_strict"] else ""),
+                    "Biome",
                     "Prettier" if opts["prettier"] else None,
                     "React Router" if opts["router"] else None,
                     "Testing Library" if opts["testing"] else None,
@@ -297,9 +297,9 @@ def _create_react_package_json(project_name: str, options: dict) -> dict:
         )
 
     scripts = {
-        "dev": "vite --port 10700",
+        "dev": "vite --port 11099",
         "build": "tsc && vite build",
-        "preview": "vite preview --port 10700",
+        "preview": "vite preview --port 11099",
         "lint": "biome check src/",
         "fmt": "biome check --write src/",
     }
@@ -1370,7 +1370,7 @@ export const useCounterStore = defineStore('counter', {
         <li>Vite</li>
         <li>Vue Router</li>
         <li>Pinia for state management</li>
-        <li>ESLint + Prettier</li>
+        <li>Biome (instead of ESLint + Prettier)</li>
         <li>Jest for unit testing</li>
       </ul>
     </div>

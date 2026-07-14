@@ -217,7 +217,7 @@ coverage/
 
     @mcp.tool()
     def configure_vite(
-        project_path: str, framework: str = "react", port: int = 10700, enable_https: bool = False
+        project_path: str, framework: str = "react", port: int = 11099, enable_https: bool = False
     ) -> dict[str, Any]:
         """Create Vite configuration optimized for development.
 
