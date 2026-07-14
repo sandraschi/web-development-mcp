@@ -15,9 +15,7 @@ class FrameworkScaffolder(Protocol):
     """Protocol for framework-specific scaffolding implementations."""
 
     @staticmethod
-    def create_project(
-        project_name: str, project_path: Path, options: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def create_project(project_name: str, project_path: Path, options: dict[str, Any]) -> dict[str, Any]:
         """Create a new project with the given framework.
 
         Args:
@@ -31,7 +29,7 @@ class FrameworkScaffolder(Protocol):
         ...
 
     @staticmethod
-    def validate_options(options: Dict[str, Any]) -> List[str]:
+    def validate_options(options: dict[str, Any]) -> list[str]:
         """Validate framework-specific options.
 
         Args:
@@ -49,7 +47,7 @@ from .frameworks.sveltekit import SvelteKitScaffolder
 from .frameworks.vue import VueScaffolder
 
 
-def get_available_frameworks() -> Dict[str, Dict[str, Any]]:
+def get_available_frameworks() -> dict[str, dict[str, Any]]:
     """Get information about all available frameworks.
 
     Returns:

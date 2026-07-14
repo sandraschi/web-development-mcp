@@ -6,14 +6,14 @@ This module contains configuration file creation for Vue 3 projects.
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 class VueScaffolderConfigs:
     """Handles creation of configuration files for Vue 3 projects."""
 
     @staticmethod
-    def create_config_files(project_path: Path, options: Dict[str, Any]) -> None:
+    def create_config_files(project_path: Path, options: dict[str, Any]) -> None:
         """Create all configuration files for a Vue project."""
         VueScaffolderConfigs._create_tsconfig(project_path, options)
         VueScaffolderConfigs._create_vite_config(project_path, options)
@@ -22,7 +22,7 @@ class VueScaffolderConfigs:
         VueScaffolderConfigs._create_postcss_config(project_path, options)
 
     @staticmethod
-    def _create_tsconfig(project_path: Path, options: Dict[str, Any]) -> None:
+    def _create_tsconfig(project_path: Path, options: dict[str, Any]) -> None:
         """Create tsconfig.json for TypeScript configuration."""
         tsconfig = {
             "compilerOptions": {
@@ -59,7 +59,7 @@ class VueScaffolderConfigs:
             json.dump(tsconfig, f, indent=2)
 
     @staticmethod
-    def _create_vite_config(project_path: Path, options: Dict[str, Any]) -> None:
+    def _create_vite_config(project_path: Path, options: dict[str, Any]) -> None:
         """Create vite.config.ts for Vite configuration."""
         vite_config = """import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
@@ -106,7 +106,7 @@ export default defineConfig({
             f.write(vite_config)
 
     @staticmethod
-    def _create_eslint_config(project_path: Path, options: Dict[str, Any]) -> None:
+    def _create_eslint_config(project_path: Path, options: dict[str, Any]) -> None:
         """Create .eslintrc.js for ESLint configuration."""
         eslint_config = """module.exports = {
   root: true,
@@ -167,7 +167,7 @@ export default defineConfig({
             f.write(eslint_config)
 
     @staticmethod
-    def _create_tailwind_config(project_path: Path, options: Dict[str, Any]) -> None:
+    def _create_tailwind_config(project_path: Path, options: dict[str, Any]) -> None:
         """Create tailwind.config.js for Tailwind CSS configuration."""
         tailwind_config = """/** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -193,7 +193,7 @@ module.exports = {
             f.write(tailwind_config)
 
     @staticmethod
-    def _create_postcss_config(project_path: Path, options: Dict[str, Any]) -> None:
+    def _create_postcss_config(project_path: Path, options: dict[str, Any]) -> None:
         """Create postcss.config.js for PostCSS configuration."""
         postcss_config = """module.exports = {
   plugins: {

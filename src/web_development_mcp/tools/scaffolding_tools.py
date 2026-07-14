@@ -8,7 +8,7 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ..utils.file_operations import write_file
 from ..utils.template_engine import process_template_file
@@ -20,7 +20,7 @@ def register_tools(mcp):
     """Register scaffolding tools with the MCP server."""
 
     @mcp.tool()
-    def list_available_frameworks() -> Dict[str, Any]:
+    def list_available_frameworks() -> dict[str, Any]:
         """List all supported frontend frameworks and their features.
 
         Returns comprehensive information about supported frameworks.
@@ -99,8 +99,8 @@ def register_tools(mcp):
     def create_react_app(
         project_name: str,
         target_directory: str,
-        options: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        options: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Create a new React application with TypeScript and modern tooling.
 
         Args:
@@ -179,8 +179,8 @@ def register_tools(mcp):
     def create_vue_app(
         project_name: str,
         target_directory: str,
-        options: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        options: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Create a new Vue 3 application with TypeScript and modern tooling.
 
         Args:
@@ -301,9 +301,7 @@ def _create_react_package_json(project_name: str, options: dict) -> dict:
         )
 
     if options.get("prettier"):
-        dev_dependencies.update(
-            {"prettier": "^3.1.0", "eslint-config-prettier": "^9.1.0"}
-        )
+        dev_dependencies.update({"prettier": "^3.1.0", "eslint-config-prettier": "^9.1.0"})
 
     scripts = {
         "dev": "vite",
@@ -924,7 +922,7 @@ def _create_react_components(project_path: Path, options: dict) -> None:
     logger.info("React components created successfully")
 
 
-def _create_vue_package_json(project_name: str, options: dict) -> Dict[str, Any]:
+def _create_vue_package_json(project_name: str, options: dict) -> dict[str, Any]:
     """
     Create package.json for a Vue 3 project with TypeScript and Vite.
 
@@ -969,9 +967,7 @@ def _create_vue_package_json(project_name: str, options: dict) -> Dict[str, Any]
 
     # Add E2E testing if enabled
     if options.get("with_e2e", False):
-        dev_dependencies.update(
-            {"@cypress/vue": "^5.0.0", "cypress": "^12.0.0", "cypress-axe": "^1.0.0"}
-        )
+        dev_dependencies.update({"@cypress/vue": "^5.0.0", "cypress": "^12.0.0", "cypress-axe": "^1.0.0"})
 
     # Configure scripts
     scripts = {
@@ -1061,9 +1057,7 @@ def _create_vue_project_structure(project_path: Path, options: dict) -> None:
     # Create a basic README if it doesn't exist
     readme_path = project_path / "README.md"
     if not readme_path.exists():
-        readme_path.write_text(
-            f"# {project_path.name}\n\nVue 3 project created with Web Development MCP.\n"
-        )
+        readme_path.write_text(f"# {project_path.name}\n\nVue 3 project created with Web Development MCP.\n")
 
     logger.info(f"Created Vue project structure at {project_path}")
 

@@ -8,12 +8,12 @@ import json
 import logging
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def _detect_framework(deps: dict, dev_deps: dict) -> Optional[str]:
+def _detect_framework(deps: dict, dev_deps: dict) -> str | None:
     """Detect the frontend framework being used.
 
     Args:
@@ -44,7 +44,7 @@ def _detect_framework(deps: dict, dev_deps: dict) -> Optional[str]:
     return None
 
 
-def _detect_build_tool(deps: dict, dev_deps: dict) -> Optional[str]:
+def _detect_build_tool(deps: dict, dev_deps: dict) -> str | None:
     """Detect the build tool being used.
 
     Args:
@@ -71,7 +71,7 @@ def _detect_build_tool(deps: dict, dev_deps: dict) -> Optional[str]:
     return None
 
 
-def detect_package_manager(project_path: str) -> Dict[str, Any]:
+def detect_package_manager(project_path: str) -> dict[str, Any]:
     """Detect which package manager is being used in a project.
 
     Args:
@@ -128,10 +128,10 @@ def detect_package_manager(project_path: str) -> Dict[str, Any]:
 
 def install_packages(
     project_path: str,
-    packages: List[str],
-    package_manager: Optional[str] = None,
+    packages: list[str],
+    package_manager: str | None = None,
     dev_dependencies: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Install npm packages in a project.
 
     Args:
@@ -194,7 +194,7 @@ def install_packages(
         return {"success": False, "error": str(e)}
 
 
-def analyze_package_json(project_path: str) -> Dict[str, Any]:
+def analyze_package_json(project_path: str) -> dict[str, Any]:
     """Analyze package.json for insights and potential issues.
 
     Args:
@@ -226,9 +226,7 @@ def analyze_package_json(project_path: str) -> Dict[str, Any]:
         if "react" in deps:
             react_version = deps["react"]
             if "^16" in react_version or "^17" in react_version:
-                warnings.append(
-                    f"React version {react_version} is outdated, consider upgrading to ^18"
-                )
+                warnings.append(f"React version {react_version} is outdated, consider upgrading to ^18")
 
         # Check for TypeScript setup
         has_typescript = "typescript" in dev_deps
@@ -283,10 +281,10 @@ def analyze_package_json(project_path: str) -> Dict[str, Any]:
 
 def update_packages(
     project_path: str,
-    packages: Optional[List[str]] = None,
-    package_manager: Optional[str] = None,
+    packages: list[str] | None = None,
+    package_manager: str | None = None,
     check_only: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Update npm packages to latest versions.
 
     Args:
@@ -359,9 +357,7 @@ def update_packages(
         return {"success": False, "error": str(e)}
 
 
-def remove_packages(
-    project_path: str, packages: List[str], package_manager: Optional[str] = None
-) -> Dict[str, Any]:
+def remove_packages(project_path: str, packages: list[str], package_manager: str | None = None) -> dict[str, Any]:
     """Remove npm packages from a project.
 
     Args:

@@ -9,10 +9,11 @@ import json
 import logging
 import os
 import shutil
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, TypeVar
 
 from jinja2 import (
     Environment,
@@ -44,16 +45,16 @@ class TemplateContext:
         metadata: Additional metadata about the template processing
     """
 
-    variables: Dict[str, Any]
-    source_path: Optional[Path] = None
-    target_path: Optional[Path] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    variables: dict[str, Any]
+    source_path: Path | None = None
+    target_path: Path | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def update(self, **kwargs) -> None:
         """Update the context variables with new values."""
         self.variables.update(kwargs)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert the context to a dictionary."""
         return {
             "variables": self.variables,
@@ -63,7 +64,7 @@ class TemplateContext:
         }
 
     @classmethod
-    def from_dict(cls: Type[T], data: Dict[str, Any]) -> T:
+    def from_dict(cls: type[T], data: dict[str, Any]) -> T:
         """Create a TemplateContext from a dictionary."""
         return cls(
             variables=data.get("variables", {}),
@@ -87,11 +88,11 @@ class TemplateEngine:
 
     def __init__(
         self,
-        template_dirs: Optional[Union[str, Path, List[Union[str, Path]]]] = None,
+        template_dirs: str | Path | list[str | Path] | None = None,
         autoescape: bool = True,
         auto_reload: bool = False,
         cache_size: int = 50,
-        extensions: Optional[List[Union[str, Type[Extension]]]] = None,
+        extensions: list[str | type[Extension]] | None = None,
         **env_options,
     ):
         """Initialize the template engine.
@@ -180,7 +181,7 @@ class TemplateEngine:
         """
         self.env.globals[name] = value
 
-    def add_template_dir(self, template_dir: Union[str, Path]) -> None:
+    def add_template_dir(self, template_dir: str | Path) -> None:
         """Add a template directory to the search path.
 
         Args:
@@ -196,7 +197,7 @@ class TemplateEngine:
                 logger.warning("Cannot update search path for current loader type")
 
     @lru_cache(maxsize=100)
-    def get_template_info(self, template_name: str) -> Dict[str, Any]:
+    def get_template_info(self, template_name: str) -> dict[str, Any]:
         """Get information about a template.
 
         Args:
@@ -217,7 +218,7 @@ class TemplateEngine:
             logger.error(f"Error getting template info for {template_name}: {e}")
             return {"error": str(e)}
 
-    def render(self, template_name: str, context: Optional[Dict[str, Any]] = None, **kwargs) -> str:
+    def render(self, template_name: str, context: dict[str, Any] | None = None, **kwargs) -> str:
         """Render a template with the given context.
 
         Args:
@@ -245,9 +246,7 @@ class TemplateEngine:
             logger.error(f"Error rendering template {template_name}: {e}")
             raise
 
-    def render_string(
-        self, template_string: str, context: Optional[Dict[str, Any]] = None, **kwargs
-    ) -> str:
+    def render_string(self, template_string: str, context: dict[str, Any] | None = None, **kwargs) -> str:
         """Render a template string with the given context.
 
         Args:
@@ -278,8 +277,8 @@ class TemplateEngine:
     def render_to_file(
         self,
         template_name: str,
-        output_path: Union[str, Path],
-        context: Optional[Dict[str, Any]] = None,
+        output_path: str | Path,
+        context: dict[str, Any] | None = None,
         encoding: str = "utf-8",
         **kwargs,
     ) -> Path:
@@ -331,12 +330,12 @@ class TemplateEngine:
 
     def render_directory(
         self,
-        template_dir: Union[str, Path],
-        output_dir: Union[str, Path],
-        context: Optional[Dict[str, Any]] = None,
-        exclude: Optional[List[str]] = None,
+        template_dir: str | Path,
+        output_dir: str | Path,
+        context: dict[str, Any] | None = None,
+        exclude: list[str] | None = None,
         **kwargs,
-    ) -> List[Path]:
+    ) -> list[Path]:
         """Render all templates in a directory to an output directory.
 
         Args:
@@ -388,9 +387,7 @@ class TemplateEngine:
             # Render template file
             try:
                 output_path.parent.mkdir(parents=True, exist_ok=True)
-                self.render_to_file(
-                    template_name=str(rel_path), output_path=output_path, context=context, **kwargs
-                )
+                self.render_to_file(template_name=str(rel_path), output_path=output_path, context=context, **kwargs)
                 rendered_files.append(output_path)
             except Exception as e:
                 logger.error(f"Error processing {rel_path}: {e}")
@@ -400,9 +397,9 @@ class TemplateEngine:
 
 
 def process_template_file(
-    template_path: Union[str, Path],
-    context: Optional[Dict[str, Any]] = None,
-    output_path: Optional[Union[str, Path]] = None,
+    template_path: str | Path,
+    context: dict[str, Any] | None = None,
+    output_path: str | Path | None = None,
     encoding: str = "utf-8",
     **kwargs,
 ) -> str:
@@ -424,9 +421,9 @@ def process_template_file(
 
 
 def process_template(
-    template_path: Union[str, Path],
-    context: Optional[Dict[str, Any]] = None,
-    output_path: Optional[Union[str, Path]] = None,
+    template_path: str | Path,
+    context: dict[str, Any] | None = None,
+    output_path: str | Path | None = None,
     encoding: str = "utf-8",
     **kwargs,
 ) -> str:
@@ -492,9 +489,7 @@ def process_template(
         raise
 
 
-def render_template_string(
-    template_string: str, context: Optional[Dict[str, Any]] = None, **kwargs
-) -> str:
+def render_template_string(template_string: str, context: dict[str, Any] | None = None, **kwargs) -> str:
     """Render a template string with the given context.
 
     This is a convenience function that creates a TemplateEngine instance and renders
@@ -529,8 +524,8 @@ def render_template_string(
 
 def process_template_string(
     template_string: str,
-    context: Optional[Dict[str, Any]] = None,
-    output_path: Optional[Union[str, Path]] = None,
+    context: dict[str, Any] | None = None,
+    output_path: str | Path | None = None,
     encoding: str = "utf-8",
     **kwargs,
 ) -> str:
@@ -580,12 +575,12 @@ def process_template_string(
 
 
 def render_directory(
-    template_dir: Union[str, Path],
-    output_dir: Union[str, Path],
-    context: Optional[Dict[str, Any]] = None,
-    exclude: Optional[List[str]] = None,
+    template_dir: str | Path,
+    output_dir: str | Path,
+    context: dict[str, Any] | None = None,
+    exclude: list[str] | None = None,
     **kwargs,
-) -> List[Path]:
+) -> list[Path]:
     """Render all templates in a directory to an output directory.
 
     This is a convenience function that creates a TemplateEngine instance and processes
@@ -623,7 +618,7 @@ def render_directory(
         raise
 
 
-def get_template_variables(template_path: Union[str, Path]) -> Dict[str, Any]:
+def get_template_variables(template_path: str | Path) -> dict[str, Any]:
     """Extract variable names from a template file.
 
     Args:
@@ -664,9 +659,7 @@ def get_template_variables(template_path: Union[str, Path]) -> Dict[str, Any]:
         return {}
 
 
-def validate_template(
-    template_path: Union[str, Path], context: Optional[Dict[str, Any]] = None
-) -> Dict[str, Any]:
+def validate_template(template_path: str | Path, context: dict[str, Any] | None = None) -> dict[str, Any]:
     """Validate a template by attempting to render it with the given context.
 
     Args:

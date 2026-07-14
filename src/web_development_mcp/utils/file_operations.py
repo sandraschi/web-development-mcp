@@ -6,10 +6,11 @@ Provides functions for working with files and directories in a cross-platform wa
 
 import json
 import shutil
+from collections.abc import Generator
 from dataclasses import dataclass
 from pathlib import Path
 from string import Template
-from typing import Any, Dict, Generator, List, Optional, Union
+from typing import Any
 
 
 @dataclass
@@ -24,7 +25,7 @@ class FileInfo:
     is_symlink: bool = False
 
 
-def create_directory(path: Union[str, Path], exist_ok: bool = True) -> Path:
+def create_directory(path: str | Path, exist_ok: bool = True) -> Path:
     """
     Create a directory if it doesn't exist.
 
@@ -40,7 +41,7 @@ def create_directory(path: Union[str, Path], exist_ok: bool = True) -> Path:
     return path
 
 
-def create_file(file_path: Union[str, Path], content: str = "", encoding: str = "utf-8") -> Path:
+def create_file(file_path: str | Path, content: str = "", encoding: str = "utf-8") -> Path:
     """
     Create a file with the given content.
 
@@ -62,9 +63,9 @@ def create_file(file_path: Union[str, Path], content: str = "", encoding: str = 
 
 
 def create_file_from_template(
-    template_path: Union[str, Path],
-    output_path: Union[str, Path],
-    context: Optional[Dict[str, Any]] = None,
+    template_path: str | Path,
+    output_path: str | Path,
+    context: dict[str, Any] | None = None,
     encoding: str = "utf-8",
 ) -> Path:
     """
@@ -99,7 +100,7 @@ def create_file_from_template(
     return create_file(output_path, content, encoding=encoding)
 
 
-def read_file(file_path: Union[str, Path], encoding: str = "utf-8") -> str:
+def read_file(file_path: str | Path, encoding: str = "utf-8") -> str:
     """
     Read the contents of a file.
 
@@ -115,7 +116,7 @@ def read_file(file_path: Union[str, Path], encoding: str = "utf-8") -> str:
         return f.read()
 
 
-def read_file_lines(file_path: Union[str, Path], encoding: str = "utf-8") -> List[str]:
+def read_file_lines(file_path: str | Path, encoding: str = "utf-8") -> list[str]:
     """
     Read the contents of a file as a list of lines.
 
@@ -132,7 +133,7 @@ def read_file_lines(file_path: Union[str, Path], encoding: str = "utf-8") -> Lis
 
 
 def read_file_chunks(
-    file_path: Union[str, Path], chunk_size: int = 8192, encoding: str = "utf-8"
+    file_path: str | Path, chunk_size: int = 8192, encoding: str = "utf-8"
 ) -> Generator[str, None, None]:
     """
     Read a file in chunks.
@@ -154,7 +155,7 @@ def read_file_chunks(
             yield chunk
 
 
-def write_file(file_path: Union[str, Path], content: str, encoding: str = "utf-8") -> Path:
+def write_file(file_path: str | Path, content: str, encoding: str = "utf-8") -> Path:
     """
     Write content to a file, creating parent directories if needed.
 
@@ -175,7 +176,7 @@ def write_file(file_path: Union[str, Path], content: str, encoding: str = "utf-8
     return file_path
 
 
-def append_to_file(file_path: Union[str, Path], content: str, encoding: str = "utf-8") -> Path:
+def append_to_file(file_path: str | Path, content: str, encoding: str = "utf-8") -> Path:
     """
     Append content to a file, creating it if it doesn't exist.
 
@@ -196,7 +197,7 @@ def append_to_file(file_path: Union[str, Path], content: str, encoding: str = "u
     return file_path
 
 
-def write_lines(file_path: Union[str, Path], lines: List[str], encoding: str = "utf-8") -> Path:
+def write_lines(file_path: str | Path, lines: list[str], encoding: str = "utf-8") -> Path:
     """
     Write a list of lines to a file.
 
@@ -217,9 +218,7 @@ def write_lines(file_path: Union[str, Path], lines: List[str], encoding: str = "
     return file_path
 
 
-def copy_file(
-    source: Union[str, Path], destination: Union[str, Path], overwrite: bool = False
-) -> Path:
+def copy_file(source: str | Path, destination: str | Path, overwrite: bool = False) -> Path:
     """
     Copy a file from source to destination.
 
@@ -245,7 +244,7 @@ def copy_file(
     return destination
 
 
-def path_exists(path: Union[str, Path]) -> bool:
+def path_exists(path: str | Path) -> bool:
     """
     Check if a path exists.
 
@@ -259,7 +258,7 @@ def path_exists(path: Union[str, Path]) -> bool:
     return path.exists()
 
 
-def is_empty_directory(path: Union[str, Path]) -> bool:
+def is_empty_directory(path: str | Path) -> bool:
     """
     Check if a directory is empty.
 
@@ -275,7 +274,7 @@ def is_empty_directory(path: Union[str, Path]) -> bool:
     return not any(path.iterdir())
 
 
-def create_directory_structure(base_path: Union[str, Path], directories: List[str]) -> None:
+def create_directory_structure(base_path: str | Path, directories: list[str]) -> None:
     """
     Create multiple directories under a base path.
 
@@ -288,7 +287,7 @@ def create_directory_structure(base_path: Union[str, Path], directories: List[st
         (base_path / directory).mkdir(parents=True, exist_ok=True)
 
 
-def write_json_file(path: Union[str, Path], data: Dict[str, Any], indent: int = 2) -> Path:
+def write_json_file(path: str | Path, data: dict[str, Any], indent: int = 2) -> Path:
     """
     Write data to a JSON file.
 
@@ -306,7 +305,7 @@ def write_json_file(path: Union[str, Path], data: Dict[str, Any], indent: int = 
     return path
 
 
-def read_json_file(path: Union[str, Path]) -> Dict[str, Any]:
+def read_json_file(path: str | Path) -> dict[str, Any]:
     """
     Read data from a JSON file.
 

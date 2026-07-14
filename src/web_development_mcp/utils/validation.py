@@ -8,7 +8,7 @@ import platform
 import re
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any
 
 # Regular expressions for validation
 PROJECT_NAME_PATTERN = r"^[a-z][a-z0-9\-_\.]{0,213}$"
@@ -16,7 +16,7 @@ PACKAGE_NAME_PATTERN = r"^(@[a-z0-9-~][a-z0-9-._~]*/)?[a-z0-9-~][a-z0-9-._~]*$"
 NODE_VERSION_PATTERN = r"^v?\d+\.\d+\.\d+$"
 
 
-def is_valid_project_name(name: str) -> Tuple[bool, str]:
+def is_valid_project_name(name: str) -> tuple[bool, str]:
     """
     Validate a project name according to npm naming conventions.
 
@@ -50,7 +50,7 @@ def is_valid_project_name(name: str) -> Tuple[bool, str]:
     return True, ""
 
 
-def validate_project_path(path: Union[str, Path], create: bool = False) -> Tuple[bool, str]:
+def validate_project_path(path: str | Path, create: bool = False) -> tuple[bool, str]:
     """
     Validate a project directory path.
 
@@ -93,7 +93,7 @@ def validate_project_path(path: Union[str, Path], create: bool = False) -> Tuple
     return True, ""
 
 
-def validate_package_name(name: str) -> Tuple[bool, str]:
+def validate_package_name(name: str) -> tuple[bool, str]:
     """
     Validate an npm package name.
 
@@ -164,7 +164,7 @@ def validate_package_name(name: str) -> Tuple[bool, str]:
     return True, ""
 
 
-def validate_node_version(version: str) -> Tuple[bool, str]:
+def validate_node_version(version: str) -> tuple[bool, str]:
     """
     Validate a Node.js version string.
 
@@ -199,7 +199,7 @@ def validate_node_version(version: str) -> Tuple[bool, str]:
     return True, ""
 
 
-def check_node_installed() -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+def check_node_installed() -> tuple[bool, str, dict[str, Any] | None]:
     """
     Check if Node.js is installed and get version information.
 
@@ -242,4 +242,4 @@ def check_node_installed() -> Tuple[bool, str, Optional[Dict[str, Any]]]:
         return True, f"Node.js {version} is installed", version_info
 
     except Exception as e:
-        return False, f"Error checking Node.js installation: {str(e)}", None
+        return False, f"Error checking Node.js installation: {e!s}", None

@@ -3,9 +3,11 @@ Help and documentation tools for Web Development MCP.
 Provides contextual assistance for the entire web development stack.
 """
 
-from typing import Any, Optional
+from typing import Any
+
 from fastmcp import FastMCP
-from .utils import _success_response, _error_response
+
+from .utils import _error_response, _success_response
 
 
 def register_tools(mcp: FastMCP):
@@ -13,8 +15,8 @@ def register_tools(mcp: FastMCP):
 
     @mcp.tool()
     async def get_help(
-        category: Optional[str] = None,
-        tool_name: Optional[str] = None,
+        category: str | None = None,
+        tool_name: str | None = None,
         level: str = "basic",
     ) -> dict[str, Any]:
         """

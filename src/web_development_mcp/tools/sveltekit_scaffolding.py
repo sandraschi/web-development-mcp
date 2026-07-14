@@ -7,12 +7,12 @@ Provides functionality to create and configure new SvelteKit projects.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def create_svelte_package_json(project_name: str, options: Dict[str, Any]) -> Dict[str, Any]:
+def create_svelte_package_json(project_name: str, options: dict[str, Any]) -> dict[str, Any]:
     """
     Create package.json for a SvelteKit project.
 
@@ -70,7 +70,7 @@ def create_svelte_package_json(project_name: str, options: Dict[str, Any]) -> Di
     }
 
 
-def create_svelte_project_structure(project_path: Path, options: Dict[str, Any]) -> None:
+def create_svelte_project_structure(project_path: Path, options: dict[str, Any]) -> None:
     """
     Create the directory structure for a SvelteKit project.
 
@@ -99,7 +99,7 @@ def create_svelte_project_structure(project_path: Path, options: Dict[str, Any])
     (project_path / "src/app.html").write_text(app_html)
 
 
-def create_svelte_config_files(project_path: Path, options: Dict[str, Any]) -> None:
+def create_svelte_config_files(project_path: Path, options: dict[str, Any]) -> None:
     """
     Create configuration files for a SvelteKit project.
 
@@ -239,7 +239,7 @@ Thumbs.db"""
     (project_path / ".gitignore").write_text(gitignore)
 
 
-def create_svelte_components(project_path: Path, options: Dict[str, Any]) -> None:
+def create_svelte_components(project_path: Path, options: dict[str, Any]) -> None:
     """
     Create initial Svelte components and application files.
 

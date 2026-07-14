@@ -15,7 +15,7 @@ import json
 import logging
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ def setup_tailwind(
     with_forms: bool = True,
     with_typography: bool = True,
     with_container_queries: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Set up Tailwind CSS in an existing project.
 
     Args:
@@ -230,7 +230,7 @@ export default {{
         return {"success": False, "error": str(e)}
 
 
-def setup_shadcn(project_path: str, components: Optional[List[str]] = None) -> Dict[str, Any]:
+def setup_shadcn(project_path: str, components: list[str] | None = None) -> dict[str, Any]:
     """Initialize shadcn/ui in a React/Next.js project.
 
     Args:
@@ -344,7 +344,7 @@ def scaffold_dashboard(
     project_name: str = "dashboard",
     with_chatbot: bool = True,
     ollama_model: str = "llama3.2:3b",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Scaffold a complete admin dashboard with all features.
 
     Creates a modern dashboard with:

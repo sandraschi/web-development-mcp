@@ -8,7 +8,7 @@ Vite, and other modern tooling.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -17,9 +17,7 @@ class ReactScaffolder:
     """Scaffolder implementation for React projects."""
 
     @staticmethod
-    def create_project(
-        project_name: str, project_path: Path, options: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def create_project(project_name: str, project_path: Path, options: dict[str, Any]) -> dict[str, Any]:
         """Create a new React project.
 
         Args:
@@ -35,9 +33,7 @@ class ReactScaffolder:
             ReactScaffolder._create_project_structure(project_path, options)
 
             # Create package.json
-            _package_json = ReactScaffolder._create_package_json(
-                project_name, project_path, options
-            )  # noqa: F841
+            _package_json = ReactScaffolder._create_package_json(project_name, project_path, options)
 
             # Create config files
             ReactScaffolder._create_config_files(project_path, options)
@@ -67,7 +63,7 @@ class ReactScaffolder:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def validate_options(options: Dict[str, Any]) -> List[str]:
+    def validate_options(options: dict[str, Any]) -> list[str]:
         """Validate React project options.
 
         Args:
@@ -83,7 +79,7 @@ class ReactScaffolder:
         return errors
 
     @staticmethod
-    def _create_project_structure(project_path: Path, options: Dict[str, Any]) -> None:
+    def _create_project_structure(project_path: Path, options: dict[str, Any]) -> None:
         """Create the directory structure for a React project."""
         # Create main directories
         (project_path / "src").mkdir(parents=True, exist_ok=True)
@@ -100,9 +96,7 @@ class ReactScaffolder:
             (project_path / "src/__tests__").mkdir(exist_ok=True)
 
     @staticmethod
-    def _create_package_json(
-        project_name: str, project_path: Path, options: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _create_package_json(project_name: str, project_path: Path, options: dict[str, Any]) -> dict[str, Any]:
         """Create package.json for a React project."""
         package_json = {
             "name": project_name,
@@ -166,9 +160,7 @@ class ReactScaffolder:
 
         # Add Prettier if enabled
         if options.get("prettier", True):
-            package_json["devDependencies"].update(
-                {"prettier": "^3.1.0", "eslint-config-prettier": "^9.0.0"}
-            )
+            package_json["devDependencies"].update({"prettier": "^3.1.0", "eslint-config-prettier": "^9.0.0"})
 
             # Add Prettier config
             prettier_config = {
@@ -208,7 +200,7 @@ class ReactScaffolder:
         return package_json
 
     @staticmethod
-    def _create_config_files(project_path: Path, options: Dict[str, Any]) -> None:
+    def _create_config_files(project_path: Path, options: dict[str, Any]) -> None:
         """Create configuration files for a React project."""
         # Create tsconfig.json
         tsconfig = {
@@ -312,9 +304,7 @@ export default defineConfig({
             json.dump(eslint_config, f, indent=2)
 
     @staticmethod
-    def _create_components(
-        project_path: Path, options: Dict[str, Any], project_name: str = "React App"
-    ) -> None:
+    def _create_components(project_path: Path, options: dict[str, Any], project_name: str = "React App") -> None:
         """Create initial React components."""
         # Create App.tsx
         app_tsx = """import { useState } from 'react';

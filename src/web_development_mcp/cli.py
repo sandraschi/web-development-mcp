@@ -42,25 +42,17 @@ For more information, visit: https://github.com/sandraschi/web-development-mcp
         """,
     )
 
-    parser.add_argument(
-        "--stdio", action="store_true", help="Run in stdio mode for MCP clients (default)"
-    )
+    parser.add_argument("--stdio", action="store_true", help="Run in stdio mode for MCP clients (default)")
 
     parser.add_argument("--http", action="store_true", help="Run in HTTP mode for web clients")
 
-    parser.add_argument(
-        "--host", default="127.0.0.1", help="Host to bind HTTP server to (default: 127.0.0.1)"
-    )
+    parser.add_argument("--host", default="127.0.0.1", help="Host to bind HTTP server to (default: 127.0.0.1)")
 
-    parser.add_argument(
-        "--port", type=int, default=8000, help="Port to bind HTTP server to (default: 8000)"
-    )
+    parser.add_argument("--port", type=int, default=8000, help="Port to bind HTTP server to (default: 8000)")
 
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
 
-    parser.add_argument(
-        "--install-config", action="store_true", help="Install Claude Desktop configuration"
-    )
+    parser.add_argument("--install-config", action="store_true", help="Install Claude Desktop configuration")
 
     parser.add_argument(
         "--check-web-development",
@@ -86,9 +78,7 @@ For more information, visit: https://github.com/sandraschi/web-development-mcp
 
     # Configure logging
     log_level = logging.DEBUG if args.debug else logging.INFO
-    logging.basicConfig(
-        level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
+    logging.basicConfig(level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     try:
         if args.install_config:
@@ -114,9 +104,7 @@ For more information, visit: https://github.com/sandraschi/web-development-mcp
 
             from web_development_mcp.server import app
 
-            uvicorn.run(
-                app, host=args.host, port=args.port, log_level="debug" if args.debug else "info"
-            )
+            uvicorn.run(app, host=args.host, port=args.port, log_level="debug" if args.debug else "info")
         else:
             # Run stdio mode (default for MCP clients)
             logger.info("Starting MCP server in stdio mode")
@@ -311,9 +299,7 @@ def show_configuration():
         app = get_app()
         if app:
             print("   Server: Ready")
-            print(
-                f"   Tools registered: {len(app.list_tools()) if hasattr(app, 'list_tools') else 'Unknown'}"
-            )
+            print(f"   Tools registered: {len(app.list_tools()) if hasattr(app, 'list_tools') else 'Unknown'}")
         else:
             print("   Server: Not initialized")
     except Exception as e:

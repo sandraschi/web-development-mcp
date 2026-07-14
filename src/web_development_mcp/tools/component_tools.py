@@ -6,7 +6,7 @@ Handles smart component creation with best practices and Austrian dev standards.
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +21,8 @@ def register_tools(mcp):
         component_type: str = "functional",
         include_styles: bool = True,
         include_tests: bool = True,
-        props_interface: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+        props_interface: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """Generate a React component with TypeScript and best practices.
 
         Args:
@@ -125,9 +125,7 @@ describe('{component_name}', () => {{
                 with open(test_file, "w", encoding="utf-8") as f:
                     f.write(test_content)
 
-                files_created.append(
-                    f"src/components/{component_name}/__tests__/{component_name}.test.tsx"
-                )
+                files_created.append(f"src/components/{component_name}/__tests__/{component_name}.test.tsx")
 
             # Create index file for easier imports
             index_content = f"export {{ default, {component_name} }} from './{component_name}';\n"
@@ -165,7 +163,7 @@ describe('{component_name}', () => {{
         composition_api: bool = True,
         include_styles: bool = True,
         include_tests: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Generate a Vue 3 component with TypeScript and Composition API.
 
         Args:
@@ -295,9 +293,7 @@ describe('{component_name}', () => {{
             return {"success": False, "error": str(e)}
 
     @mcp.tool()
-    def generate_custom_hook(
-        project_path: str, hook_name: str, hook_type: str = "state"
-    ) -> Dict[str, Any]:
+    def generate_custom_hook(project_path: str, hook_name: str, hook_type: str = "state") -> dict[str, Any]:
         """Generate a custom React hook with TypeScript.
 
         Args:

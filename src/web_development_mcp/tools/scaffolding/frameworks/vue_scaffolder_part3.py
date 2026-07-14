@@ -5,14 +5,14 @@ This module contains component creation for Vue 3 projects.
 """
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 class VueScaffolderComponents:
     """Handles creation of Vue components and project files."""
 
     @staticmethod
-    def create_components(project_path: Path, options: Dict[str, Any]) -> None:
+    def create_components(project_path: Path, options: dict[str, Any]) -> None:
         """Create all initial components and project files."""
         src_dir = project_path / "src"
 
@@ -44,7 +44,7 @@ class VueScaffolderComponents:
         VueScaffolderComponents._create_readme(project_path, options)
 
     @staticmethod
-    def _create_main_ts(src_dir: Path, options: Dict[str, Any]) -> None:
+    def _create_main_ts(src_dir: Path, options: dict[str, Any]) -> None:
         """Create main.ts entry point."""
         main_ts = """import './assets/main.css'
 
@@ -64,7 +64,7 @@ app.mount('#app')
             f.write(main_ts)
 
     @staticmethod
-    def _create_app_vue(src_dir: Path, options: Dict[str, Any]) -> None:
+    def _create_app_vue(src_dir: Path, options: dict[str, Any]) -> None:
         """Create App.vue root component."""
         app_vue = """<script setup lang="ts">
 import { RouterView } from 'vue-router'
@@ -86,7 +86,7 @@ import TheNavbar from './components/TheNavbar.vue'
             f.write(app_vue)
 
     @staticmethod
-    def _create_navbar(src_dir: Path, options: Dict[str, Any]) -> None:
+    def _create_navbar(src_dir: Path, options: dict[str, Any]) -> None:
         """Create TheNavbar.vue component."""
         navbar_vue = """<script setup lang="ts">
 import { ref } from 'vue'
@@ -183,7 +183,7 @@ const toggleMenu = () => {
             f.write(navbar_vue)
 
     @staticmethod
-    def _create_router(src_dir: Path, options: Dict[str, Any]) -> None:
+    def _create_router(src_dir: Path, options: dict[str, Any]) -> None:
         """Create router configuration."""
         (src_dir / "router").mkdir(exist_ok=True)
 
@@ -212,7 +212,7 @@ export default router
             f.write(router_ts)
 
     @staticmethod
-    def _create_views(src_dir: Path, options: Dict[str, Any]) -> None:
+    def _create_views(src_dir: Path, options: dict[str, Any]) -> None:
         """Create view components."""
         views_dir = src_dir / "views"
         views_dir.mkdir(exist_ok=True)
@@ -307,7 +307,7 @@ export default defineComponent({
             f.write(about_view)
 
     @staticmethod
-    def _create_stores(src_dir: Path, options: Dict[str, Any]) -> None:
+    def _create_stores(src_dir: Path, options: dict[str, Any]) -> None:
         """Create Pinia store."""
         stores_dir = src_dir / "stores"
         stores_dir.mkdir(exist_ok=True)
@@ -332,7 +332,7 @@ export const useMainStore = defineStore('main', {
             f.write(stores_index)
 
     @staticmethod
-    def _create_styles(src_dir: Path, options: Dict[str, Any]) -> None:
+    def _create_styles(src_dir: Path, options: dict[str, Any]) -> None:
         """Create global styles."""
         assets_dir = src_dir / "assets"
         assets_dir.mkdir(exist_ok=True)
@@ -356,7 +356,7 @@ export const useMainStore = defineStore('main', {
             f.write(main_css)
 
     @staticmethod
-    def _create_index_html(project_path: Path, options: Dict[str, Any]) -> None:
+    def _create_index_html(project_path: Path, options: dict[str, Any]) -> None:
         """Create index.html."""
         index_html = """<!DOCTYPE html>
 <html lang="en">
@@ -376,7 +376,7 @@ export const useMainStore = defineStore('main', {
             f.write(index_html)
 
     @staticmethod
-    def _create_test_files(project_path: Path, options: Dict[str, Any]) -> None:
+    def _create_test_files(project_path: Path, options: dict[str, Any]) -> None:
         """Create test setup and example test files."""
         tests_dir = project_path / "tests"
         tests_dir.mkdir(exist_ok=True)
@@ -429,7 +429,7 @@ describe('HomeView', () => {
             f.write(example_test)
 
     @staticmethod
-    def _create_readme(project_path: Path, options: Dict[str, Any]) -> None:
+    def _create_readme(project_path: Path, options: dict[str, Any]) -> None:
         """Create README.md."""
         project_name = project_path.name
 

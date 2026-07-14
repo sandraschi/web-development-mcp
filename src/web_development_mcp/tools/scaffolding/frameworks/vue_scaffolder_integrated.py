@@ -6,7 +6,7 @@ This module combines all Vue 3 scaffolding functionality into a single module.
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +15,7 @@ class VueScaffolder:
     """Integrated scaffolder implementation for Vue 3 projects."""
 
     @staticmethod
-    def create_project(
-        project_name: str, project_path: Path, options: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def create_project(project_name: str, project_path: Path, options: dict[str, Any]) -> dict[str, Any]:
         """Create a new Vue 3 project.
 
         Args:
@@ -69,7 +67,7 @@ class VueScaffolder:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def validate_options(options: Dict[str, Any]) -> List[str]:
+    def validate_options(options: dict[str, Any]) -> list[str]:
         """Validate Vue project options.
 
         Args:

@@ -9,10 +9,10 @@ Organized tool modules:
 """
 
 __all__ = [
-    "scaffolding_tools",
-    "package_tools",
     "build_tools",
     "component_tools",
     "dashboard_tools",
     "help_tools",
+    "package_tools",
+    "scaffolding_tools",
 ]

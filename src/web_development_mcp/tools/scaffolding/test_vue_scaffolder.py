@@ -9,7 +9,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from web_development_mcp.tools.scaffolding.frameworks.vue_scaffolder_integrated import VueScaffolder
 
@@ -22,7 +22,7 @@ class TestVueScaffolder(unittest.TestCase):
         self.test_dir = Path(tempfile.mkdtemp(prefix="vue_scaffold_test_"))
         self.project_name = "test-vue-app"
         self.project_path = self.test_dir / self.project_name
-        self.options: Dict[str, Any] = {
+        self.options: dict[str, Any] = {
             "router": True,
             "pinia": True,
             "testing": True,

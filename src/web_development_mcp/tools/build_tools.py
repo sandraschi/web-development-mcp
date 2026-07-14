@@ -7,7 +7,7 @@ Handles Vite, TypeScript, ESLint, and other build tool configurations.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ def register_tools(mcp):
         strict_mode: bool = True,
         target: str = "ES2020",
         include_react: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create or update TypeScript configuration.
 
         Args:
@@ -111,7 +111,7 @@ def register_tools(mcp):
         framework: str = "react",
         typescript: bool = True,
         strict_rules: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create ESLint configuration with Austrian dev standards.
 
         Args:
@@ -146,9 +146,7 @@ def register_tools(mcp):
 
             # Framework-specific configuration
             if framework == "react":
-                eslint_config["extends"].extend(
-                    ["plugin:react/recommended", "plugin:react-hooks/recommended"]
-                )
+                eslint_config["extends"].extend(["plugin:react/recommended", "plugin:react-hooks/recommended"])
                 eslint_config["plugins"] = eslint_config.get("plugins", []) + [
                     "react",
                     "react-hooks",
@@ -241,7 +239,7 @@ coverage/
     @mcp.tool()
     def configure_vite(
         project_path: str, framework: str = "react", port: int = 5173, enable_https: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create Vite configuration optimized for development.
 
         Args:
@@ -334,7 +332,7 @@ export default defineConfig({{
     @mcp.tool()
     def setup_testing_config(
         project_path: str, framework: str = "react", test_runner: str = "vitest"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Setup testing configuration with Vitest and Testing Library.
 
         Args:

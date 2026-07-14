@@ -7,7 +7,7 @@ Vite, and other modern tooling.
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +16,7 @@ class VueScaffolder:
     """Scaffolder implementation for Vue 3 projects."""
 
     @staticmethod
-    def create_project(
-        project_name: str, project_path: Path, options: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def create_project(project_name: str, project_path: Path, options: dict[str, Any]) -> dict[str, Any]:
         """Create a new Vue 3 project.
 
         Args:
@@ -34,7 +32,7 @@ class VueScaffolder:
             VueScaffolder._create_project_structure(project_path, options)
 
             # Create package.json
-            _package_json = VueScaffolder._create_package_json(project_name, project_path, options)  # noqa: F841
+            _package_json = VueScaffolder._create_package_json(project_name, project_path, options)
 
             # Create config files
             VueScaffolder._create_config_files(project_path, options)
@@ -65,7 +63,7 @@ class VueScaffolder:
             return {"success": False, "error": str(e)}
 
     @staticmethod
-    def validate_options(options: Dict[str, Any]) -> List[str]:
+    def validate_options(options: dict[str, Any]) -> list[str]:
         """Validate Vue project options.
 
         Args:
@@ -78,7 +76,7 @@ class VueScaffolder:
         return errors
 
     @staticmethod
-    def _create_project_structure(project_path: Path, options: Dict[str, Any]) -> None:
+    def _create_project_structure(project_path: Path, options: dict[str, Any]) -> None:
         """Create the directory structure for a Vue project."""
         # Create main directories
         src_dir = project_path / "src"

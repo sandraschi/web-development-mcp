@@ -9,7 +9,7 @@ import logging
 import re
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import requests
 from semver import VersionInfo
@@ -17,15 +17,13 @@ from semver import VersionInfo
 logger = logging.getLogger(__name__)
 
 # Cache for package versions
-_package_cache: Dict[str, Any] = {}
+_package_cache: dict[str, Any] = {}
 
 
-def _run_command(cmd: List[str], cwd: Optional[Union[str, Path]] = None) -> Tuple[bool, str]:
+def _run_command(cmd: list[str], cwd: str | Path | None = None) -> tuple[bool, str]:
     """Run a shell command and return the result."""
     try:
-        result = subprocess.run(
-            cmd, cwd=str(cwd) if cwd else None, capture_output=True, text=True, check=False
-        )
+        result = subprocess.run(cmd, cwd=str(cwd) if cwd else None, capture_output=True, text=True, check=False)
 
         if result.returncode != 0:
             error_msg = result.stderr.strip() or "Unknown error"
@@ -37,9 +35,7 @@ def _run_command(cmd: List[str], cwd: Optional[Union[str, Path]] = None) -> Tupl
         return False, str(e)
 
 
-def get_latest_package_versions(
-    packages: List[str], registry: str = "https://registry.npmjs.org"
-) -> Dict[str, str]:
+def get_latest_package_versions(packages: list[str], registry: str = "https://registry.npmjs.org") -> dict[str, str]:
     """
     Get the latest versions of the specified packages from the npm registry.
 
@@ -88,9 +84,9 @@ def get_latest_package_versions(
 
 def resolve_package_version(
     package_name: str,
-    version_constraint: Optional[str] = None,
+    version_constraint: str | None = None,
     registry: str = "https://registry.npmjs.org",
-) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+) -> tuple[bool, str, dict[str, Any] | None]:
     """
     Resolve a package version based on the given constraint.
 
@@ -157,9 +153,7 @@ def resolve_package_version(
             # Sort versions in descending order
             sorted_versions = sorted(
                 versions,
-                key=lambda v: VersionInfo.parse(v)
-                if VersionInfo.is_valid(v)
-                else VersionInfo(0, 0, 0),
+                key=lambda v: VersionInfo.parse(v) if VersionInfo.is_valid(v) else VersionInfo(0, 0, 0),
                 reverse=True,
             )
 
@@ -186,11 +180,7 @@ def resolve_package_version(
                     elif version_constraint.startswith("~"):
                         # Tilde range (e.g., ~1.2.3)
                         min_ver = VersionInfo.parse(version_constraint[1:])
-                        if (
-                            ver.major == min_ver.major
-                            and ver.minor == min_ver.minor
-                            and ver >= min_ver
-                        ):
+                        if ver.major == min_ver.major and ver.minor == min_ver.minor and ver >= min_ver:
                             return (
                                 True,
                                 f"Resolved {package_name}@{version}",
@@ -284,9 +274,9 @@ def resolve_package_version(
 
 def get_compatible_versions(
     package_name: str,
-    dependency_constraints: Dict[str, str],
+    dependency_constraints: dict[str, str],
     registry: str = "https://registry.npmjs.org",
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """
     Find versions of a package that are compatible with the given dependency constraints.
 
@@ -324,11 +314,11 @@ def get_compatible_versions(
 
 def install_package(
     package_name: str,
-    version: Optional[str] = None,
-    cwd: Optional[Union[str, Path]] = None,
+    version: str | None = None,
+    cwd: str | Path | None = None,
     save_dev: bool = False,
     registry: str = "https://registry.npmjs.org",
-) -> Tuple[bool, str]:
+) -> tuple[bool, str]:
     """
     Install a package using npm or yarn.
 

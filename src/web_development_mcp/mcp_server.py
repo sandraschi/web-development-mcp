@@ -25,6 +25,7 @@ mcp = FastMCP("web-development")
 async def health_check(request: Request) -> JSONResponse:
     return JSONResponse({"status": "healthy", "server": "web-development-mcp"})
 
+
 # MCP Bridge: proxy tools from other MCP servers via MCP_BRIDGE_URLS
 _bridge_proxies: list[str] = []
 bridge_urls = os.getenv("MCP_BRIDGE_URLS", "")
@@ -40,13 +41,13 @@ if bridge_urls:
 
 # Import and register tool modules
 from .tools import (
-    package_tools,
-    scaffolding_tools,
     agentic_tools,
     build_tools,
     component_tools,
     dashboard_tools,
     help_tools,
+    package_tools,
+    scaffolding_tools,
 )
 from .transport import run_server
 
