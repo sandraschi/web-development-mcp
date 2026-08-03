@@ -26,7 +26,7 @@
 		"icon": ["icons/icon.png", "icons/icon.ico"],
 		"resources": [
 			"resources/webdev-mcp-backend.exe",
-            "resources/.env",
+            "resources/.env.example",
 			"../scripts/install-mcp-clients.ps1"
 		],
 		"windows": {
@@ -41,6 +41,7 @@
 	},
 	"plugins": {}
 }
+
 
 
 
