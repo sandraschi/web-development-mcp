@@ -51,11 +51,11 @@ def setup_tailwind(
 
         # Detect package manager
         if (path / "pnpm-lock.yaml").exists():
-            cmd = ["pnpm", "add", "-D"] + packages
+            cmd = ["pnpm", "add", "-D", *packages]
         elif (path / "yarn.lock").exists():
-            cmd = ["yarn", "add", "-D"] + packages
+            cmd = ["yarn", "add", "-D", *packages]
         else:
-            cmd = ["npm", "install", "-D"] + packages
+            cmd = ["npm", "install", "-D", *packages]
 
         result = subprocess.run(cmd, cwd=project_path, capture_output=True, text=True, timeout=120)
 

@@ -1,5 +1,6 @@
-from web_development_mcp.tools.package_tools import list_dependencies
 import json
+
+from web_development_mcp.tools.package_tools import list_dependencies
 
 
 def test_list_dependencies_missing_file(tmp_path):

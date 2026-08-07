@@ -4,13 +4,13 @@ Tests for the BuildTools class.
 These tests verify the functionality of the build tools.
 """
 
+import json
 import os
 import shutil
 
 # Add the parent directory to the Python path
 import sys
 import tempfile
-import json
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -59,9 +59,7 @@ class TestBuildTools(unittest.TestCase):
         )
 
         # Create a minimal .prettierrc
-        (self.project_path / ".prettierrc").write_text(
-            json.dumps({"semi": True, "singleQuote": True, "tabWidth": 2})
-        )
+        (self.project_path / ".prettierrc").write_text(json.dumps({"semi": True, "singleQuote": True, "tabWidth": 2}))
 
         # Create a test source file
         self.src_dir = self.project_path / "src"

@@ -136,83 +136,19 @@ def register_tools(mcp):
                     },
                 },
                 "formatter": {"enabled": True, "indentStyle": "space", "indentWidth": 2, "lineWidth": 100},
-                "javascript": {
-                    "formatter": {"quoteStyle": "single", "trailingCommas": "all", "semicolons": "always"}
-                },
+                "javascript": {"formatter": {"quoteStyle": "single", "trailingCommas": "all", "semicolons": "always"}},
             }
             if strict_rules:
                 biome_config["linter"]["rules"]["correctness"]["noUnusedVariables"] = "error"
             biome_path = path / "biome.json"
             with open(biome_path, "w", encoding="utf-8") as f:
                 json.dump(biome_config, f, indent=2)
-            return {"success": True, "config_files": ["biome.json"], "message": "Biome configured (replaces ESLint + Prettier)"}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-                        "no-debugger": "error",
-                        "no-unused-vars": "error",
-                        "no-undef": "error",
-                        "prefer-const": "error",
-                        "no-var": "error",
-                        "eqeqeq": "error",
-                        "curly": "error",
-                        "semi": ["error", "always"],
-                        "quotes": ["error", "single"],
-                        "indent": ["error", 2],
-                        "comma-dangle": ["error", "never"],
-                        "object-curly-spacing": ["error", "always"],
-                        "array-bracket-spacing": ["error", "never"],
-                        "space-before-blocks": "error",
-                        "keyword-spacing": "error",
-                    }
-                )
-
-                if typescript:
-                    eslint_config["rules"].update(
-                        {
-                            "@typescript-eslint/no-unused-vars": "error",
-                            "@typescript-eslint/explicit-function-return-type": "warn",
-                            "@typescript-eslint/no-explicit-any": "warn",
-                            "@typescript-eslint/prefer-nullish-coalescing": "error",
-                            "@typescript-eslint/prefer-optional-chain": "error",
-                        }
-                    )
-
-            # Write configuration
-            with open(eslint_path, "w", encoding="utf-8") as f:
-                json.dump(eslint_config, f, indent=2)
-
-            # Create .eslintignore
-            eslintignore_content = """dist/
-build/
-node_modules/
-*.min.js
-coverage/
-.env
-.env.local
-.env.production
-"""
-
-            with open(path / ".eslintignore", "w", encoding="utf-8") as f:
-                f.write(eslintignore_content)
-
             return {
                 "success": True,
-                "project_path": project_path,
-                "framework": framework,
-                "typescript": typescript,
-                "strict_rules": strict_rules,
-                "config_files": [".eslintrc.json", ".eslintignore"],
-                "features": [
-                    f"{framework.title()} support",
-                    "TypeScript integration" if typescript else "JavaScript only",
-                    "Austrian dev standards" if strict_rules else "Standard rules",
-                    "Import/export validation",
-                    "Code style enforcement",
-                ],
+                "config_files": ["biome.json"],
+                "message": "Biome configured (replaces ESLint + Prettier)",
             }
-
         except Exception as e:
-            logger.error(f"Error configuring ESLint: {e}")
             return {"success": False, "error": str(e)}
 
     @mcp.tool()

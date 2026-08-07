@@ -90,9 +90,9 @@ def detect_package_manager(project_path: str) -> dict[str, Any]:
             package_managers.append("npm")
         if (path / "yarn.lock").exists():
             package_managers.append("yarn")
-            if (path / "bun.lock").exists():
-                package_managers.append("bun")
-            if (path / "pnpm-lock.yaml").exists():
+        if (path / "bun.lock").exists():
+            package_managers.append("bun")
+        if (path / "pnpm-lock.yaml").exists():
             package_managers.append("pnpm")
 
         # Check for package.json
@@ -318,12 +318,12 @@ def update_packages(
         if check_only:
             if package_manager == "npm":
                 cmd = ["npm", "outdated", "--json"]
-        elif package_manager == "yarn":
-            cmd = ["yarn", "outdated", "--json"]
-        elif package_manager == "bun":
-            cmd = ["bun", "outdated", "--json"]
-        elif package_manager == "pnpm":
-            cmd = ["pnpm", "outdated", "--json"]
+            elif package_manager == "yarn":
+                cmd = ["yarn", "outdated", "--json"]
+            elif package_manager == "bun":
+                cmd = ["bun", "outdated", "--json"]
+            elif package_manager == "pnpm":
+                cmd = ["pnpm", "outdated", "--json"]
             else:
                 return {"success": False, "error": f"Unsupported: {package_manager}"}
         else:
@@ -392,13 +392,13 @@ def remove_packages(project_path: str, packages: list[str], package_manager: str
             package_manager = detection["primary_manager"] or "npm"
 
         if package_manager == "npm":
-            cmd = ["npm", "uninstall"] + packages
+            cmd = ["npm", "uninstall", *packages]
         elif package_manager == "yarn":
-            cmd = ["yarn", "remove"] + packages
+            cmd = ["yarn", "remove", *packages]
         elif package_manager == "bun":
-            cmd = ["bun", "remove"] + packages
+            cmd = ["bun", "remove", *packages]
         elif package_manager == "pnpm":
-            cmd = ["pnpm", "remove"] + packages
+            cmd = ["pnpm", "remove", *packages]
         else:
             return {"success": False, "error": f"Unsupported: {package_manager}"}
 

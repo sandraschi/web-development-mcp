@@ -91,7 +91,6 @@ export default function SettingsPage() {
     
     // Simulate API call
     setTimeout(() => {
-      console.log('Settings saved:', formData);
       setIsSaving(false);
       // Show success toast here
     }, 1000);
