@@ -17,7 +17,7 @@ repos:
         args: ["--profile", "black"]
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 0.7.1
+    rev: v0.16.0
     hooks:
       - id: ruff
         args: [--fix]
