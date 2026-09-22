@@ -19,13 +19,18 @@ def register_tools(mcp: FastMCP):
         tool_name: str | None = None,
         level: str = "basic",
     ) -> dict[str, Any]:
-        """
-        Get comprehensive documentation for Web Development MCP tools.
+        """Get documentation for Web Development MCP tools.
 
-        Args:
-            category (str | None): Help category (scaffolding, package, build, component, sampling)
-            tool_name (str | None): Specific tool documentation
-            level (str): Help detail level (basic, advanced). Default: "basic"
+        ## Return Format
+
+        `{success, data}` where data holds `level`, `categories`, and —
+        when a category is given — the real registered tool names in it.
+
+        ## Examples
+
+        - category="scaffolding" -> list_available_frameworks, create_react_app, create_vue_app.
+        - category="package" -> detect_package_manager, install_packages, update_packages, ...
+        - No args -> the five category summaries.
         """
         try:
             help_info = {
@@ -47,13 +52,33 @@ def register_tools(mcp: FastMCP):
                 help_info["details"] = await _get_sampling_help(level)
             elif category == "scaffolding":
                 help_info["tools"] = {
-                    "create_project": "New project setup",
-                    "list_templates": "View frameworks",
+                    "list_available_frameworks": "Show supported frameworks and features",
+                    "create_react_app": "Create React + TypeScript + Vite project",
+                    "create_vue_app": "Create Vue 3 + TypeScript + Vite project",
                 }
             elif category == "package":
                 help_info["tools"] = {
-                    "install_deps": "Add packages",
-                    "run_script": "Execute scripts",
+                    "detect_package_manager": "Auto-detect npm/yarn/pnpm/bun",
+                    "install_packages": "Install dependencies",
+                    "update_packages": "Update with conflict resolution",
+                    "remove_packages": "Remove dependencies",
+                    "analyze_package_json": "Security and compatibility analysis",
+                }
+            elif category == "build":
+                help_info["tools"] = {
+                    "configure_typescript": "Strict TypeScript setup",
+                    "configure_biome": "Biome lint+format (replaces ESLint+Prettier)",
+                    "configure_vite": "Vite dev/build config",
+                    "setup_testing_config": "Vitest + Testing Library setup",
+                }
+            elif category == "component":
+                help_info["tools"] = {
+                    "generate_react_component": "React component with styles+tests",
+                    "generate_vue_component": "Vue 3 Composition API component",
+                    "generate_custom_hook": "React hooks (state, fetch, storage)",
+                    "setup_tailwind": "Tailwind styling baseline",
+                    "setup_shadcn": "shadcn/ui component library",
+                    "scaffold_dashboard": "Full dashboard scaffold",
                 }
 
             return _success_response(help_info)
@@ -94,12 +119,12 @@ This tool uses deep orchestration to handle complex tasks:
 The `agentic_workflow_tool` utilizes a **multi-stage sampling process**:
 
 1. **Analysis Stage**: The LLM evaluates the `goal` against available templates and tools.
-2. **Strategy Generation**: The LLM creates a plan involving multiple tools (e.g., `create_project` -> `install_deps` -> `create_component`).
+2. **Strategy Generation**: The LLM creates a plan involving multiple tools (e.g., `create_react_app` -> `install_packages` -> `generate_react_component`).
 3. **Execution Stage**: Each tool is called with appropriate parameters, with the output of one informing the next.
 
 ## Safety & Ethics Guards
 
-- **Consent Required**: All destructive or external operations (like `install_deps`) require explicit user confirmation.
+- **Consent Required**: All destructive or external operations (like `install_packages`) require explicit user confirmation.
 - **Quota Management**: Limits on tokens and iteration depth to prevent runaway orchestration.
 - **Workspace Isolation**: Operations are restricted to the designated project directory.
 """
