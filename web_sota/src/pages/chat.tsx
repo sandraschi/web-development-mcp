@@ -6,8 +6,9 @@ import { Send, Bot, User, Download, Eraser, Loader2 } from "lucide-react";
 
 const STORAGE_KEY = "webdev-mcp-chat-history";
 const PERSONALITY_KEY = "webdev-mcp-chat-personality";
-const BACKEND_PORT = 10853;
-const API_BASE = `http://127.0.0.1:${BACKEND_PORT}`;
+const SKILL_KEY = "webdev-mcp-skill-preprompt";
+// API base comes from Vite env (fleet-start ApiTargetEnv) with a local default.
+const API_BASE = (import.meta as any).env?.VITE_API_TARGET ?? "http://127.0.0.1:10853";
 
 type Message = { role: "user" | "assistant"; content: string };
 type Personality = { id: string; label: string; prompt: string };
@@ -53,15 +54,23 @@ function loadPersonality(): string {
 }
 
 async function fetchAI(query: string, personality: Personality): Promise<string> {
+  // Skill-first: server skill content (cached from GET /api/skills) is the
+  // base system prompt; the personality composes on top of it.
+  const skillPreprompt = (() => { try { return localStorage.getItem(SKILL_KEY) || ""; } catch { return ""; } })();
+  const base = skillPreprompt ? `${skillPreprompt}\n\n` : "";
   const systemPrompt = personality.id === "custom"
-    ? (localStorage.getItem("webdev-mcp-custom-prompt") || "You are a helpful web development assistant.")
-    : `${personality.prompt}\n\nYou are Web Dev MCP, a web development server for code generation, site preview, and deployment. Respond helpfully to the user's request.`;
-  const r = await fetch(`${API_BASE}/api/chat`, {
+    ? `${base}${localStorage.getItem("webdev-mcp-custom-prompt") || "You are a helpful web development assistant."}`
+    : `${base}${personality.prompt}\n\nYou are Web Dev MCP, a web development server for code generation, site preview, and deployment. Respond helpfully to the user's request.`;
+  // Backend chat proxy only — API keys never leave the server.
+  const r = await fetch(`${API_BASE}/api/llm/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, system_prompt: systemPrompt }),
   });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${r.status}`);
+  }
   const data = await r.json();
   return data.reply || data.response || data.message || "(no response)";
 }
@@ -80,6 +89,7 @@ export function Chat() {
   const [sending, setSending] = useState(false);
   const [personalityId, setPersonalityId] = useState(loadPersonality);
   const [backendOk, setBackendOk] = useState<boolean | null>(null);
+  const [llmOk, setLlmOk] = useState<boolean | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   const personality = PERSONALITIES.find(p => p.id === personalityId) || PERSONALITIES[0];
@@ -87,6 +97,22 @@ export function Chat() {
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   useEffect(() => { checkBackend().then(setBackendOk); }, []);
+
+  useEffect(() => {
+    // Skill-first: cache server skill content for the system preprompt.
+    fetch(`${API_BASE}/api/skills`).then(async (r) => {
+      if (!r.ok) return;
+      const data = await r.json();
+      const text = (data.skills ?? []).map((s: any) => `# skill:${s.id}\n${s.content}`).join("\n\n");
+      try { localStorage.setItem(SKILL_KEY, text); } catch { /* private mode */ }
+    }).catch(() => {});
+    // Provider status for the controls-bar indicator.
+    fetch(`${API_BASE}/api/llm/providers`).then(async (r) => {
+      if (!r.ok) { setLlmOk(false); return; }
+      const data = await r.json();
+      setLlmOk((data.providers ?? []).some((p: any) => p.detected));
+    }).catch(() => setLlmOk(false));
+  }, []);
 
   useEffect(() => {
     saveHistory(messages);
@@ -139,9 +165,13 @@ export function Chat() {
           <p className="text-slate-400 text-sm">Natural language tool orchestration and code generation</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5 text-xs">
+          <span className="flex items-center gap-1.5 text-sm">
             <span className={`w-2 h-2 rounded-full ${backendOk === null ? "bg-gray-500" : backendOk ? "bg-green-500" : "bg-red-500"}`} />
-            <span className="text-slate-400">{backendOk === null ? "Checking..." : backendOk ? "Backend OK" : "Offline"}</span>
+            <span className="text-slate-300">{backendOk === null ? "Checking..." : backendOk ? "Backend OK" : "Offline"}</span>
+          </span>
+          <span className="flex items-center gap-1.5 text-sm" data-testid="llm-status">
+            <span className={`w-2 h-2 rounded-full ${llmOk === null ? "bg-gray-500" : llmOk ? "bg-green-500" : "bg-amber-500"}`} />
+            <span className="text-slate-300">{llmOk === null ? "LLM…" : llmOk ? "LLM ready" : "No LLM"}</span>
           </span>
           <span className="text-xs text-blue-400 bg-blue-950/30 px-2 py-0.5 rounded font-medium">skill:webdev-expert</span>
           <select

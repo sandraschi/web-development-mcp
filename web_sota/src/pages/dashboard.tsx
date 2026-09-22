@@ -11,6 +11,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/common/utils';
 
+// API base comes from Vite env (fleet-start ApiTargetEnv) with a local default.
+const API_BASE = (import.meta as any).env?.VITE_API_TARGET ?? 'http://127.0.0.1:10853';
+
 // UI components
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
     return (
@@ -22,53 +25,98 @@ function Card({ children, className }: { children: React.ReactNode; className?: 
 
 
 interface Metrics {
-    cpu: number;
-    memory: number;
+    uptime_seconds: number;
     tasks: number;
+    pid: number;
+}
+
+interface LogEntry {
+    id: string;
+    timestamp: string;
+    level: string;
+    kind: string;
+    detail: string;
+}
+
+function formatUptime(totalSeconds: number): string {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m`;
+    return `${Math.floor(totalSeconds)}s`;
 }
 
 export function Dashboard() {
-    const [metrics, setMetrics] = useState<Metrics>({
-        cpu: 0,
-        memory: 0,
-        tasks: 0,
-    });
+    const [metrics, setMetrics] = useState<Metrics | null>(null);
+    const [activity, setActivity] = useState<LogEntry[]>([]);
+    const [state, setState] = useState<'loading' | 'ok' | 'error'>('loading');
+    const [error, setError] = useState<string>('');
 
     useEffect(() => {
-        const fetchMetrics = async () => {
+        let cancelled = false;
+        const fetchData = async () => {
             try {
-                // Backend port 10853
-                const response = await fetch('http://localhost:10853/metrics');
-                const data = await response.json();
-                setMetrics(data);
-            } catch (error) {
-                console.error('Error fetching metrics:', error);
+                const [mRes, lRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/metrics`),
+                    fetch(`${API_BASE}/api/logs?limit=5&sort=desc`),
+                ]);
+                if (!mRes.ok || !lRes.ok) throw new Error(`HTTP ${mRes.status}/${lRes.status}`);
+                const mData = await mRes.json();
+                const lData = await lRes.json();
+                if (cancelled) return;
+                setMetrics(mData);
+                setActivity(lData.entries ?? []);
+                setState('ok');
+            } catch (e) {
+                if (cancelled) return;
+                setError(e instanceof Error ? e.message : 'Backend unreachable');
+                setState('error');
             }
         };
 
-        fetchMetrics();
-        const interval = setInterval(fetchMetrics, 5000);
-        return () => clearInterval(interval);
+        fetchData();
+        const interval = setInterval(fetchData, 10000);
+        return () => { cancelled = true; clearInterval(interval); };
     }, []);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" data-testid="dashboard">
             <header>
                 <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
                     <LayoutDashboard className="h-8 w-8 text-emerald-500" />
                     Development Overview
                 </h1>
-                <p className="mt-2 text-slate-400">
+                <p className="mt-2 text-slate-300">
                     Real-time status of your development environment and active project scaffolds.
                 </p>
             </header>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <MetricCard label="Active Processes" value={metrics.tasks} unit="" icon={Terminal} color="text-emerald-500" />
-                <MetricCard label="CPU Load" value={metrics.cpu} unit="%" icon={Cpu} color="text-blue-500" />
-                <MetricCard label="Memory Usage" value={metrics.memory} unit="%" icon={Database} color="text-purple-500" />
-                <MetricCard label="Build Queue" value={0} unit=" jobs" icon={Activity} color="text-amber-500" />
-            </div>
+            {state === 'loading' && (
+                <Card className="p-6 bg-slate-900/40 border-slate-800">
+                    <p className="text-sm text-slate-300">Connecting to backend…</p>
+                </Card>
+            )}
+
+            {state === 'error' && (
+                <Card className="p-6 bg-slate-900/40 border-red-900">
+                    <p className="text-sm text-red-300">Backend unreachable: {error}</p>
+                    <button
+                        className="mt-3 text-sm px-3 py-1.5 rounded border border-slate-700 text-slate-200 hover:bg-slate-800"
+                        onClick={() => window.location.reload()}
+                    >
+                        Retry
+                    </button>
+                </Card>
+            )}
+
+            {state === 'ok' && metrics && (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <MetricCard label="Logged events" value={String(metrics.tasks)} unit="" icon={Terminal} color="text-emerald-500" />
+                    <MetricCard label="Backend uptime" value={formatUptime(metrics.uptime_seconds)} unit="" icon={Cpu} color="text-blue-500" />
+                    <MetricCard label="Backend PID" value={String(metrics.pid)} unit="" icon={Database} color="text-purple-500" />
+                    <MetricCard label="Backend status" value="Online" unit="" icon={Activity} color="text-amber-500" />
+                </div>
+            )}
 
             <div className="grid gap-6 md:grid-cols-2">
                 <Card className="p-6 bg-slate-900/40 border-slate-800 backdrop-blur-sm">
@@ -77,10 +125,10 @@ export function Dashboard() {
                         Quick Actions
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
-                        <ActionButton label="Scaffold App" icon={Hammer} href="/scaffolder" />
-                        <ActionButton label="Manage Packages" icon={Package} href="/packages" disabled />
-                        <ActionButton label="Components" icon={Component} href="/components" disabled />
-                        <ActionButton label="Tool Lab" icon={Terminal} href="/tools" disabled />
+                        <ActionButton label="Scaffold App" icon={Hammer} href="/projects" />
+                        <ActionButton label="Manage Packages" icon={Package} href="/packages" disabled={false} />
+                        <ActionButton label="Components" icon={Component} href="/components" disabled={false} />
+                        <ActionButton label="Tool Lab" icon={Terminal} href="/tools" disabled={false} />
                     </div>
                 </Card>
 
@@ -89,11 +137,22 @@ export function Dashboard() {
                         <Activity className="h-5 w-5 text-amber-500" />
                         Recent Activity
                     </h3>
-                    <div className="space-y-3">
-                        <ActivityItem label="Scaffolded test-project" time="5m ago" status="success" />
-                        <ActivityItem label="Updated bridge version" time="1h ago" status="info" />
-                        <ActivityItem label="Server initialized" time="2h ago" status="success" />
-                    </div>
+                    {activity.length === 0 ? (
+                        <p className="text-sm text-slate-300">
+                            No backend activity yet. Send a chat message or scaffold a project to get started.
+                        </p>
+                    ) : (
+                        <div className="space-y-3">
+                            {activity.map((e) => (
+                                <ActivityItem
+                                    key={e.id}
+                                    label={`${e.kind}: ${e.detail}`}
+                                    time={e.timestamp}
+                                    status={e.level === 'ERROR' ? 'error' : e.level === 'WARNING' ? 'info' : 'success'}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </Card>
             </div>
         </div>
@@ -104,10 +163,10 @@ function MetricCard({ label, value, unit, icon: Icon, color }: any) {
     return (
         <Card className="p-6 bg-slate-900/40 border-slate-800 backdrop-blur-sm">
             <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-400">{label}</span>
+                <span className="text-sm font-medium text-slate-300">{label}</span>
                 <Icon className={cn("h-4 w-4", color)} />
             </div>
-            <div className="mt-2 text-2xl font-bold text-white">
+            <div className="mt-2 text-2xl font-bold text-white" data-testid={`kpi-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
                 {value}{unit}
             </div>
         </Card>
@@ -123,8 +182,8 @@ function ActionButton({ label, icon: Icon, href, disabled }: any) {
                 disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-slate-800 hover:border-slate-700 hover:scale-[1.02]"
             )}
         >
-            <Icon className="h-5 w-5 text-slate-400" />
-            <span className="text-sm font-medium text-slate-300">{label}</span>
+            <Icon className="h-5 w-5 text-slate-300" />
+            <span className="text-sm font-medium text-slate-200">{label}</span>
         </a>
     );
 }
@@ -139,8 +198,7 @@ function ActivityItem({ label, time, status }: any) {
                 )} />
                 <span className="text-slate-200">{label}</span>
             </div>
-            <span className="text-slate-500 text-xs">{time}</span>
+            <span className="text-slate-300 text-sm">{time}</span>
         </div>
     );
 }
-

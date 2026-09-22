@@ -36,6 +36,23 @@ from typing import Literal
 
 logger = logging.getLogger(__name__)
 
+# Fleet CORS standard (mcp-central-docs/standards/CORS_STANDARD.md):
+# explicit origins + unconditional tailnet/LAN/Tauri regex. Never ["*"]
+# (browsers reject a wildcard origin once allow_credentials=True is set).
+_FRONTEND_PORT = int(os.getenv("WEB_FRONTEND_PORT", os.getenv("VITE_PORT", "10852")))
+_BACKEND_PORT = int(os.getenv("WEB_PORT", "10853"))
+_CORS_ORIGINS = [
+    f"http://localhost:{_FRONTEND_PORT}",
+    f"http://127.0.0.1:{_FRONTEND_PORT}",
+    f"http://localhost:{_BACKEND_PORT}",
+    f"http://127.0.0.1:{_BACKEND_PORT}",
+    # Tauri WebView (always include, harmless when not in Tauri)
+    "tauri://localhost",
+    "http://tauri.localhost",
+    "https://tauri.localhost",
+]
+_CORS_REGEX = r"https?://(?:[a-zA-Z0-9-]+\.ts\.net|.*?\.tail-[a-f0-9]+\.ts\.net|tauri\.localhost|localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|100\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?$|^tauri://localhost$"
+
 TransportType = Literal["stdio", "http", "sse"]
 
 # Environment variable standards
@@ -218,12 +235,13 @@ async def run_server_async(mcp_app, args: argparse.Namespace | None = None, serv
             endpoint = f"http://{host}:{port}{path}"
             logger.info(f"Running in HTTP Streamable mode: {endpoint}")
 
-            app = mcp_app.http_app()
+            app = mcp_app.http_app(path=path)
             from fastapi.middleware.cors import CORSMiddleware
 
             app.add_middleware(
                 CORSMiddleware,
-                allow_origins=["*"],
+                allow_origins=_CORS_ORIGINS,
+                allow_origin_regex=_CORS_REGEX,
                 allow_credentials=True,
                 allow_methods=["*"],
                 allow_headers=["*"],
@@ -233,7 +251,14 @@ async def run_server_async(mcp_app, args: argparse.Namespace | None = None, serv
             async def health():
                 return {"status": "ok", "server": "web-development-mcp"}
 
-            await mcp_app.run(transport="http", host=host, port=port, path=path)
+            # NOTE: serve THIS app (with CORS attached) via uvicorn directly.
+            # mcp.run(transport="http") would build a fresh internal app and
+            # silently drop the middleware (see CORS_STANDARD.md).
+            import uvicorn
+
+            uvicorn_config = uvicorn.Config(app, host=host, port=port, log_level="info")
+            uvicorn_server = uvicorn.Server(uvicorn_config)
+            await uvicorn_server.serve()
 
         elif transport == "sse":
             host = config["host"]
