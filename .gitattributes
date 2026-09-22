@@ -1,0 +1,8 @@
+# Fleet line-ending normalization: LF everywhere (Biome CRLF CI risk).
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
