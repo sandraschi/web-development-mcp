@@ -1,0 +1,6 @@
+{
+  "name": "web-development-mcp",
+  "version": "0.1.0",
+  "description": "Web Development MCP session context (tool-awareness prompt for Claude Code).",
+  "hooks": "../hooks/hooks.json"
+}
