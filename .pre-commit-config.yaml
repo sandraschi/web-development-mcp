@@ -11,10 +11,10 @@ repos:
   - repo: local
     hooks:
       - id: biome-ci
-        name: biome ci (web roots)
+        name: biome ci (changed web files)
         entry: powershell.exe -NoProfile -File scripts/pre-commit-biome.ps1
         language: system
-        pass_filenames: false
+        pass_filenames: true
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
