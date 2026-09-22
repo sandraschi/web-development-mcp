@@ -123,6 +123,9 @@ def register_tools(mcp):
                 "husky": False,
                 **(options or {}),
             }
+            # Templates (index.html, App.tsx) render {{project_name }} under
+            # StrictUndefined — it must always be in the render context.
+            opts["project_name"] = project_name
 
             # Validate project name
             if not _is_valid_project_name(project_name):

@@ -7,12 +7,12 @@ function App() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={% raw %}{{ opacity: 0, y: 8 }}{% endraw %}
+      animate={% raw %}{{ opacity: 1, y: 0 }}{% endraw %}
       className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-8"
     >
       <Activity className="w-12 h-12 text-blue-400 mb-4" />
-      <h1 className="text-2xl font-semibold mb-2">{project_name}</h1>
+      <h1 className="text-2xl font-semibold mb-2">{{ project_name }}</h1>
       <p className="text-zinc-400 mb-6">Scaffolded with web-development-mcp</p>
 
       <div className="flex items-center gap-4 mb-8">
