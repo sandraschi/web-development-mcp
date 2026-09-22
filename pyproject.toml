@@ -44,6 +44,8 @@ dependencies = [
     "pydantic>=2.0.0,<3.0.0",
     "requests>=2.28.0",
     "semver>=3.0.0",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.34",
 ]
 
 [project.optional-dependencies]
@@ -171,8 +173,17 @@ line-length = 120
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "B", "S", "UP", "RUF"]
-ignore = ["S101", "B008", "S106", "S110", "S112", "S101", "B008", "S106", "S110", "S112", "RUF012", "S603", "S607", "S324", "E402", "E501"]
+select = ["E", "F", "W", "I", "B", "S", "UP", "RUF", "T20"]
+# NOTE: S110/S112 (try-except-pass/continue) must NEVER be ignored fleet-wide —
+# they mask silent failures. T20 (no-print) is enforced in server code; CLI and
+# scripts get explicit per-file-ignores below instead of a global exemption.
+ignore = ["S104", "S310", "S311", "S314", "S608", "S108", "S603", "S301", "S103", "S105", "S607", "S701", "S102", "S307", "S324", "ASYNC230", "B008", "B904", "B025", "B019", "B023", "C901", "UP035", "RUF006", "N806", "E501", "F841", "PLW1510", "BLE001", "RUF022", "E402", "F811", "B006", "B007", "RUF059", "RUF001", "RUF002", "RUF012", "DTZ005", "DTZ006", "DTZ001", "E741", "SIM115", "SIM102", "RUF100", "F401", "D103", "D101", "F821", "TRY002", "S101", "S106", "S603", "S607", "S324", "E402", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# CLI output is legitimate user-facing printing, not server logging.
+"src/web_development_mcp/cli.py" = ["T20"]
+"scripts/**/*" = ["T20"]
+"tests/**/*" = ["T20", "S101"]
 
 [tool.ruff.format]
 quote-style = "double"

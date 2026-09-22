@@ -37,7 +37,7 @@ if bridge_urls:
                 mcp.add_provider(create_proxy(url))
                 _bridge_proxies.append(url)
             except Exception:
-                pass
+                logger.exception(f"Skipping unreachable MCP bridge: {url}")
 
 # Import and register tool modules
 from .tools import (

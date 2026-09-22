@@ -1,22 +1,35 @@
 {
   "$schema": "https://glama.ai/mcp/schemas/server.json",
-  "maintainers": [
-    "sandraschi"
-  ],
+  "maintainers": ["sandraschi"],
   "name": "web-development-mcp",
-  "description": "Professional MCP server built with FastMCP 2.14.3+. Part of the sandraschi SOTA 2026 fleet.",
+  "description": "Universal web development operations MCP server (React/Vue scaffolding, packages, Vite/TS/Biome config, component generation). Built with FastMCP 3.4+.",
   "type": "mcp_server",
   "status": "production",
-  "framework": "FastMCP 2.14.3+",
-  "transport": [
-    "stdio",
-    "http"
+  "framework": "FastMCP 3.4+",
+  "version": "0.1.0",
+  "transport": ["stdio", "http"],
+  "tools": [
+    "list_available_frameworks",
+    "create_react_app",
+    "create_vue_app",
+    "detect_package_manager",
+    "install_packages",
+    "analyze_package_json",
+    "update_packages",
+    "remove_packages",
+    "configure_typescript",
+    "configure_biome",
+    "configure_vite",
+    "setup_testing_config",
+    "generate_react_component",
+    "generate_vue_component",
+    "generate_custom_hook",
+    "setup_tailwind",
+    "setup_shadcn",
+    "scaffold_dashboard",
+    "agentic_workflow_tool",
+    "toggle_safety_guard",
+    "get_help"
   ],
-  "keywords": [
-    "mcp-server",
-    "fastmcp",
-    "anthropic",
-    "ai-tools",
-    "sandraschi"
-  ]
+  "keywords": ["mcp-server", "fastmcp", "web-development", "scaffolding", "vite", "react", "vue", "sandraschi"]
 }

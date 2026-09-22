@@ -89,3 +89,14 @@ _dashboard/
 # on every pack. Never hand-edit, never commit.
 mcpb/src/
 
+# Fleet standard ignores (GITIGNORE_STANDARDS.md)
+node_modules/
+**/node_modules/
+*.mcpb
+*.bak
+*.bak.*
+reports/
+native/gen/
+*.sqlite3
+*.db*
+
