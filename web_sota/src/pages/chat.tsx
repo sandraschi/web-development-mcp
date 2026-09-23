@@ -12,7 +12,11 @@ const API_BASE =
   (import.meta as unknown as { env?: ViteEnv }).env?.VITE_API_TARGET ??
   "http://127.0.0.1:10853";
 
-type Message = { role: "user" | "assistant"; content: string };
+type Message = {
+  role: "user" | "assistant";
+  content: string;
+  streaming?: boolean;
+};
 type Personality = { id: string; label: string; prompt: string };
 
 const PERSONALITIES: Personality[] = [
@@ -78,10 +82,7 @@ function loadPersonality(): string {
   }
 }
 
-async function fetchAI(
-  query: string,
-  personality: Personality,
-): Promise<string> {
+function buildSystemPrompt(personality: Personality): string {
   // Skill-first: server skill content (cached from GET /api/skills) is the
   // base system prompt; the personality composes on top of it.
   const skillPreprompt = (() => {
@@ -92,10 +93,23 @@ async function fetchAI(
     }
   })();
   const base = skillPreprompt ? `${skillPreprompt}\n\n` : "";
-  const systemPrompt =
-    personality.id === "custom"
-      ? `${base}${localStorage.getItem("webdev-mcp-custom-prompt") || "You are a helpful web development assistant."}`
-      : `${base}${personality.prompt}\n\nYou are Web Dev MCP, a web development server for code generation, site preview, and deployment. Respond helpfully to the user's request.`;
+  if (personality.id === "custom") {
+    let custom = "You are a helpful web development assistant.";
+    try {
+      custom = localStorage.getItem("webdev-mcp-custom-prompt") || custom;
+    } catch {
+      /* private mode */
+    }
+    return `${base}${custom}`;
+  }
+  return `${base}${personality.prompt}\n\nYou are Web Dev MCP, a web development server for code generation, site preview, and deployment. Respond helpfully to the user's request.`;
+}
+
+async function fetchAI(
+  query: string,
+  personality: Personality,
+): Promise<string> {
+  const systemPrompt = buildSystemPrompt(personality);
   // Backend chat proxy only — API keys never leave the server.
   const r = await fetch(`${API_BASE}/api/llm/chat`, {
     method: "POST",
@@ -108,6 +122,59 @@ async function fetchAI(
   }
   const data = await r.json();
   return data.reply || data.response || data.message || "(no response)";
+}
+
+async function fetchAIStream(
+  query: string,
+  personality: Personality,
+  onPartial: (partial: string) => void,
+): Promise<string> {
+  const systemPrompt = buildSystemPrompt(personality);
+  const r = await fetch(`${API_BASE}/api/llm/chat/stream`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, system_prompt: systemPrompt }),
+  });
+  if (!r.ok || !r.body) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${r.status}`);
+  }
+  const reader = r.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let full = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      let chunk: {
+        message?: { content?: string };
+        done?: boolean;
+        error?: string;
+      };
+      try {
+        chunk = JSON.parse(trimmed);
+      } catch {
+        continue; // partial line; completes with the next chunk
+      }
+      if (chunk.error) throw new Error(chunk.error);
+      const delta: string = chunk.message?.content || "";
+      if (delta) {
+        full += delta;
+        onPartial(full);
+      }
+      if (chunk.done) {
+        await reader.cancel().catch(() => {});
+        return full || "(no response)";
+      }
+    }
+  }
+  return full || "(no response)";
 }
 
 async function checkBackend(): Promise<boolean> {
@@ -191,17 +258,44 @@ export function Chat() {
       const userMsg: Message = { role: "user", content: text };
       setMessages((prev) => [...prev, userMsg]);
       setInput("");
-      try {
-        const reply = await fetchAI(text, personality);
-        setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
-      } catch (e) {
-        setMessages((prev) => [
-          ...prev,
-          {
+      const pushPartial = (partial: string) => {
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          const streaming = {
             role: "assistant",
-            content: `Error: ${e instanceof Error ? e.message : "Backend unreachable"}`,
-          },
-        ]);
+            content: partial,
+            streaming: true,
+          } as Message;
+          if (last?.role === "assistant" && last.streaming) {
+            return [...prev.slice(0, -1), streaming];
+          }
+          return [...prev, streaming];
+        });
+      };
+      const finalize = (content: string) => {
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          const final = { role: "assistant", content } as Message;
+          if (last?.role === "assistant" && last.streaming) {
+            return [...prev.slice(0, -1), final];
+          }
+          return [...prev, final];
+        });
+      };
+      try {
+        try {
+          const reply = await fetchAIStream(text, personality, pushPartial);
+          finalize(reply);
+        } catch {
+          // Streaming unavailable (older backend or proxy hiccup): fall back
+          // to the non-streaming proxy rather than failing the message.
+          const reply = await fetchAI(text, personality);
+          finalize(reply);
+        }
+      } catch (e) {
+        finalize(
+          `Error: ${e instanceof Error ? e.message : "Backend unreachable"}`,
+        );
       } finally {
         setSending(false);
       }

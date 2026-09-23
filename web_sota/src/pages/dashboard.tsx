@@ -64,6 +64,23 @@ export function Dashboard() {
   const [activity, setActivity] = useState<LogEntry[]>([]);
   const [state, setState] = useState<"loading" | "ok" | "error">("loading");
   const [error, setError] = useState<string>("");
+  const [llmDetected, setLlmDetected] = useState<boolean | null>(null);
+  const [onboarded, setOnboarded] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("webdev-onboarded") === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  const markOnboarded = () => {
+    try {
+      localStorage.setItem("webdev-onboarded", "1");
+    } catch {
+      /* private mode */
+    }
+    setOnboarded(true);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -90,6 +107,21 @@ export function Dashboard() {
 
     fetchData();
     const interval = setInterval(fetchData, 10000);
+    fetch(`${API_BASE}/api/llm/discover`)
+      .then(async (r) => {
+        if (!r.ok) return;
+        const data = await r.json();
+        if (!cancelled) {
+          setLlmDetected(
+            (data.providers ?? []).some(
+              (p: { detected: boolean }) => p.detected,
+            ),
+          );
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLlmDetected(false);
+      });
     return () => {
       cancelled = true;
       clearInterval(interval);
@@ -108,6 +140,37 @@ export function Dashboard() {
           scaffolds.
         </p>
       </header>
+
+      {!onboarded && llmDetected === false && (
+        <Card
+          data-testid="onboarding-cue"
+          className="p-6 bg-red-950/40 border-red-700 backdrop-blur-sm"
+        >
+          <h2 className="text-lg font-semibold text-white">
+            Finish onboarding: connect an LLM
+          </h2>
+          <p className="mt-1 text-sm text-slate-200">
+            No local LLM detected. Chat needs Ollama (:11434) or LM Studio
+            (:1234), or a cloud key — see docs/ONBOARDING.md. All numbers on
+            this page are live backend data (no samples, nothing mocked).
+          </p>
+          <div className="mt-3 flex gap-2">
+            <a
+              href="/settings"
+              className="text-sm px-4 py-2 rounded bg-red-600 hover:bg-red-500 text-white font-medium"
+            >
+              Open Settings
+            </a>
+            <button
+              type="button"
+              onClick={markOnboarded}
+              className="text-sm px-4 py-2 rounded border border-slate-600 text-slate-200 hover:bg-slate-800"
+            >
+              Mark onboarded
+            </button>
+          </div>
+        </Card>
+      )}
 
       {state === "loading" && (
         <Card className="p-6 bg-slate-900/40 border-slate-800">
