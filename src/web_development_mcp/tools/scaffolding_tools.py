@@ -518,9 +518,10 @@ def _create_react_components(project_path: Path, options: dict) -> None:
             "};\n"
         )
 
+    pages_dir = src_dir / "pages"
+
     # Create pages if router is enabled
     if options.get("router", False):
-        pages_dir = src_dir / "pages"
         pages_dir.mkdir(exist_ok=True)
 
         # Home page
@@ -764,9 +765,10 @@ def _create_react_components(project_path: Path, options: dict) -> None:
             "Input.displayName = 'Input';\n"
         )
 
+    pages_dir = src_dir / "pages"
+
     # Create pages if router is enabled
     if options.get("router", False):
-        pages_dir = src_dir / "pages"
         pages_dir.mkdir(exist_ok=True)
 
     # Home page

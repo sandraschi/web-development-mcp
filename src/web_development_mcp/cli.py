@@ -227,11 +227,11 @@ def check_web_development_installation():
 
     # Check Python integration
     try:
-        import bpy  # noqa: F401
+        import bpy  # noqa: F401  # pyright: ignore[reportMissingImports] -- optional Blender API
 
         print("✅ Web Development Python API (bpy) available")
     except ImportError:
-        print("ℹ️  Web Development Python API not available (normal for external MCP usage)")
+        print("i️  Web Development Python API not available (normal for external MCP usage)")
 
     print()
     print("🎯 Web Development MCP is ready to use with external Web Development installations!")
@@ -243,16 +243,17 @@ def list_available_tools():
     print("=" * 50)
 
     try:
-        # Try to get the app and list tools directly
-        from web_development_mcp.app import get_app
+        # List tools from the real registered FastMCP server
+        import asyncio
 
-        app = get_app()
-        if app and hasattr(app, "list_tools"):
-            tools = app.list_tools()
+        from web_development_mcp.mcp_server import mcp as _mcp_server
+
+        tools = asyncio.run(_mcp_server.list_tools())
+        if tools:
             print(f"\nFound {len(tools)} registered tools:")
             for tool in tools:
                 print(f"\n- {tool.name}")
-                if hasattr(tool, "description") and tool.description:
+                if getattr(tool, "description", None):
                     print(f"  {tool.description}")
         else:
             print("MCP server not initialized. Run the server first to see available tools.")
@@ -294,12 +295,14 @@ def show_configuration():
 
     print("\nMCP Server Status:")
     try:
-        from web_development_mcp.app import get_app
+        import asyncio
 
-        app = get_app()
-        if app:
+        from web_development_mcp.mcp_server import mcp as _mcp_server
+
+        tools = asyncio.run(_mcp_server.list_tools())
+        if tools:
             print("   Server: Ready")
-            print(f"   Tools registered: {len(app.list_tools()) if hasattr(app, 'list_tools') else 'Unknown'}")
+            print(f"   Tools registered: {len(tools)}")
         else:
             print("   Server: Not initialized")
     except Exception as e:

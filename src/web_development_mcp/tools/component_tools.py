@@ -182,7 +182,8 @@ describe('{component_name}', () => {{
             component_dir = path / "src" / "components"
             component_dir.mkdir(parents=True, exist_ok=True)
 
-            # Generate Vue component with Composition API
+            # Generate Vue component with Composition API (only supported variant)
+            component_code: str | None = None
             if composition_api:
                 component_code = f"""<template>
   <div class="{component_name.lower()}">
@@ -236,6 +237,13 @@ const handleClick = () => {{
                     else ""
                 }
 """
+
+            if component_code is None:
+                return {
+                    "success": False,
+                    "error": "Only the Composition API (composition_api=True) is supported",
+                    "message": "Vue component generation needs composition_api=True",
+                }
 
             # Write component file
             component_file = component_dir / f"{component_name}.vue"
@@ -314,7 +322,8 @@ describe('{component_name}', () => {{
             hooks_dir = path / "src" / "hooks"
             hooks_dir.mkdir(parents=True, exist_ok=True)
 
-            # Generate hook based on type
+            # Generate hook based on type (state, effect, fetch, storage)
+            hook_code: str | None = None
             if hook_type == "state":
                 hook_code = f"""import {{ useState, useCallback }} from 'react';
 
@@ -407,6 +416,13 @@ export const {hook_name} = <T = any>(options: {hook_name.capitalize()}Options) =
   }};
 }};
 """
+
+            if hook_code is None:
+                return {
+                    "success": False,
+                    "error": f"Unsupported hook_type '{hook_type}' (use state, effect, fetch, storage)",
+                    "message": f"Unsupported hook_type '{hook_type}'",
+                }
 
             # Write hook file
             hook_file = hooks_dir / f"{hook_name}.ts"

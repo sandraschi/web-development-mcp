@@ -276,7 +276,7 @@ def get_compatible_versions(
     package_name: str,
     dependency_constraints: dict[str, str],
     registry: str = "https://registry.npmjs.org",
-) -> dict[str, str]:
+) -> dict[str, Any]:
     """
     Find versions of a package that are compatible with the given dependency constraints.
 
