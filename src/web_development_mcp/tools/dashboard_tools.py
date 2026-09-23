@@ -15,27 +15,37 @@ import json
 import logging
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import Field
 
 logger = logging.getLogger(__name__)
 
+_READ_ONLY = {"readonly": True}
+_MUTATING = {}
+_DESTRUCTIVE = {"destructive": True}
+
 
 def setup_tailwind(
-    project_path: str,
-    with_forms: bool = True,
-    with_typography: bool = True,
-    with_container_queries: bool = False,
+    project_path: Annotated[str, Field(description="Path to the project directory")],
+    with_forms: Annotated[bool, Field(description="Include @tailwindcss/forms plugin")] = True,
+    with_typography: Annotated[bool, Field(description="Include @tailwindcss/typography plugin")] = True,
+    with_container_queries: Annotated[bool, Field(description="Include @tailwindcss/container-queries plugin")] = False,
 ) -> dict[str, Any]:
     """Set up Tailwind CSS in an existing project.
 
-    Args:
-        project_path: Path to the project directory
-        with_forms: Include @tailwindcss/forms plugin
-        with_typography: Include @tailwindcss/typography plugin
-        with_container_queries: Include @tailwindcss/container-queries plugin
+    Installs tailwindcss/postcss/autopilot (+ optional plugins) with the
+    detected manager, then writes tailwind.config.js, postcss.config.js,
+    and src/index.css. Mutates `node_modules` and lockfiles.
 
-    Returns:
-        Dictionary with setup results
+    ## Return Format
+
+    `{success, message, project_path, packages_installed, files_created,
+    plugins}`.
+
+    ## Examples
+
+    - setup_tailwind(project_path="D:/proj") -> installs + writes 3 config files.
     """
     try:
         path = Path(project_path)
@@ -60,7 +70,11 @@ def setup_tailwind(
         result = subprocess.run(cmd, cwd=project_path, capture_output=True, text=True, timeout=120)
 
         if result.returncode != 0:
-            return {"success": False, "error": result.stderr}
+            return {
+                "success": False,
+                "error": result.stderr,
+                "message": f"Tailwind install failed: {result.stderr}",
+            }
 
         # Create tailwind.config.js
         plugins = []
@@ -215,6 +229,7 @@ export default {{
 
         return {
             "success": True,
+            "message": f"Tailwind configured with {len(packages)} packages",
             "project_path": str(project_path),
             "packages_installed": packages,
             "files_created": ["tailwind.config.js", "postcss.config.js", "src/index.css"],
@@ -226,19 +241,31 @@ export default {{
         }
 
     except Exception as e:
-        logger.error(f"Error setting up Tailwind: {e}")
-        return {"success": False, "error": str(e)}
+        logger.exception(f"Error setting up Tailwind: {e}")
+        return {"success": False, "error": str(e), "message": f"Tailwind setup failed: {e}"}
 
 
-def setup_shadcn(project_path: str, components: list[str] | None = None) -> dict[str, Any]:
+def setup_shadcn(
+    project_path: Annotated[str, Field(description="Path to the React/Next.js project")],
+    components: Annotated[
+        list[str] | None,
+        Field(description="Components to install (default: button, card, dialog, dropdown-menu)"),
+    ] = None,
+) -> dict[str, Any]:
     """Initialize shadcn/ui in a React/Next.js project.
 
-    Args:
-        project_path: Path to the project directory
-        components: List of components to install (default: button, card, dialog, dropdown-menu)
+    Writes components.json + src/lib/utils.ts and creates
+    src/components/ui. Installs class-variance-authority, clsx,
+    tailwind-merge via the detected manager.
 
-    Returns:
-        Dictionary with setup results
+    ## Return Format
+
+    `{success, message, project_path, files_created, components_dir,
+    next_steps}`.
+
+    ## Examples
+
+    - setup_shadcn(project_path="D:/proj") -> base install with 4 default components.
     """
     try:
         path = Path(project_path)
@@ -335,34 +362,30 @@ export function cn(...inputs: ClassValue[]) {
         }
 
     except Exception as e:
-        logger.error(f"Error setting up shadcn: {e}")
-        return {"success": False, "error": str(e)}
+        logger.exception(f"Error setting up shadcn: {e}")
+        return {"success": False, "error": str(e), "message": f"shadcn setup failed: {e}"}
 
 
 def scaffold_dashboard(
-    project_path: str,
-    project_name: str = "dashboard",
-    with_chatbot: bool = True,
-    ollama_model: str = "llama3.2:3b",
+    project_path: Annotated[str, Field(description="Path to the project (must have React + Tailwind)")],
+    project_name: Annotated[str, Field(description="Name for the dashboard")] = "dashboard",
+    with_chatbot: Annotated[bool, Field(description="Include the Ollama chatbot component")] = True,
+    ollama_model: Annotated[str, Field(description="Default Ollama model for chatbot")] = "llama3.2:3b",
 ) -> dict[str, Any]:
     """Scaffold a complete admin dashboard with all features.
 
-    Creates a modern dashboard with:
-    - Collapsible sidebar navigation
-    - Topbar with theme toggle and user menu
-    - Help modal with keyboard shortcuts
-    - Log viewer modal
-    - Card/list view switcher
-    - Popup chatbot with Ollama integration
+    Copies sidebar, topbar, help/log modals, view switcher, layout (and the
+    Ollama chatbot) from the bundled templates into the project.
 
-    Args:
-        project_path: Path to the project directory (must have React + Tailwind)
-        project_name: Name for the dashboard
-        with_chatbot: Include the Ollama chatbot component
-        ollama_model: Default Ollama model for chatbot
+    ## Return Format
 
-    Returns:
-        Dictionary with scaffold results
+    `{success, message, project_path, project_name, files_created, features,
+    keyboard_shortcuts, next_steps}`.
+
+    ## Examples
+
+    - scaffold_dashboard(project_path="D:/proj") -> 7 components incl. chatbot.
+    - scaffold_dashboard(project_path="D:/proj", with_chatbot=False) -> no chatbot.
     """
     try:
         path = Path(project_path)
@@ -487,6 +510,7 @@ export default App;
 
         return {
             "success": True,
+            "message": f"Scaffolded dashboard '{project_name}' ({len(files_created)} files)",
             "project_path": str(project_path),
             "project_name": project_name,
             "files_created": files_created,
@@ -516,14 +540,14 @@ export default App;
         }
 
     except Exception as e:
-        logger.error(f"Error scaffolding dashboard: {e}")
-        return {"success": False, "error": str(e)}
+        logger.exception(f"Error scaffolding dashboard: {e}")
+        return {"success": False, "error": str(e), "message": f"Dashboard scaffold failed: {e}"}
 
 
 def register_tools(mcp):
     """Register dashboard tools with the MCP server."""
-    mcp.tool()(setup_tailwind)
-    mcp.tool()(setup_shadcn)
-    mcp.tool()(scaffold_dashboard)
+    mcp.tool(annotations=_MUTATING)(setup_tailwind)
+    mcp.tool(annotations=_MUTATING)(setup_shadcn)
+    mcp.tool(annotations=_MUTATING)(scaffold_dashboard)
 
     logger.info("Dashboard tools registered successfully")
