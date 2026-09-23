@@ -8,7 +8,9 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import Field
 
 from ..utils.file_operations import write_file
 from ..utils.template_engine import process_template_file
@@ -125,23 +127,30 @@ def register_tools(mcp):
             "best_performance": ["react"],
         }
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING)
     def create_react_app(
-        project_name: str,
-        target_directory: str,
-        options: dict[str, Any] | None = None,
+        project_name: Annotated[str, Field(description="Project name (lowercase, numbers, hyphens)")],
+        target_directory: Annotated[str, Field(description="Directory where the project will be created")],
+        options: Annotated[
+            dict[str, Any] | None,
+            Field(description="Options: router, testing, eslint_strict, prettier, husky"),
+        ] = None,
     ) -> dict[str, Any]:
-        """Create a new React application with TypeScript and modern tooling.
+        """Create a new React + TypeScript + Vite application.
 
-        Args:
-            project_name: Name of the project (will be used for package.json name)
-            target_directory: Directory where project will be created
-            options: Optional customization options
-                - router: Include React Router (default: true)
-                - testing: Include testing setup (default: true)
-                - eslint_strict: Use strict ESLint rules (default: true)
-                - prettier: Include Prettier configuration (default: true)
-                - husky: Include git hooks (default: false)
+        Scaffolds package.json, project structure, configs (Vite/TS/Biome),
+        and starter components. Fails explicitly on bad names or existing
+        directories — never half-writes.
+
+        ## Return Format
+
+        `{success, message, project_name, project_path, framework,
+        features_included, next_steps}`.
+
+        ## Examples
+
+        - create_react_app(project_name="my-app", target_directory="./projects") ->
+          full scaffold with router + testing.
         """
         try:
             # Default options
@@ -162,6 +171,7 @@ def register_tools(mcp):
                 return {
                     "success": False,
                     "error": "Invalid project name. Use lowercase letters, numbers, and hyphens only.",
+                    "message": "Invalid project name (lowercase, numbers, hyphens only)",
                 }
 
             # Create project directory
@@ -170,6 +180,7 @@ def register_tools(mcp):
                 return {
                     "success": False,
                     "error": f"Directory {project_path} already exists",
+                    "message": f"Directory {project_path} already exists",
                 }
 
             project_path.mkdir(parents=True, exist_ok=False)
@@ -189,6 +200,7 @@ def register_tools(mcp):
 
             return {
                 "success": True,
+                "message": f"Scaffolded React app '{project_name}'",
                 "project_name": project_name,
                 "project_path": str(project_path),
                 "framework": "react",
@@ -205,25 +217,32 @@ def register_tools(mcp):
             }
 
         except Exception as e:
-            logger.error(f"Error creating React app: {e}")
-            return {"success": False, "error": str(e)}
+            logger.exception(f"Error creating React app: {e}")
+            return {"success": False, "error": str(e), "message": f"React scaffold failed: {e}"}
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING)
     def create_vue_app(
-        project_name: str,
-        target_directory: str,
-        options: dict[str, Any] | None = None,
+        project_name: Annotated[str, Field(description="Project name (lowercase, numbers, hyphens)")],
+        target_directory: Annotated[str, Field(description="Directory where the project will be created")],
+        options: Annotated[
+            dict[str, Any] | None,
+            Field(description="Options: router, pinia, testing, eslint_strict"),
+        ] = None,
     ) -> dict[str, Any]:
-        """Create a new Vue 3 application with TypeScript and modern tooling.
+        """Create a new Vue 3 + TypeScript + Vite application.
 
-        Args:
-            project_name: Name of the project
-            target_directory: Directory where project will be created
-            options: Optional customization options
-                - router: Include Vue Router (default: true)
-                - pinia: Include Pinia state management (default: true)
-                - testing: Include testing setup (default: true)
-                - eslint_strict: Use strict ESLint rules (default: true)
+        Scaffolds package.json, project structure, configs, and starter
+        components. Fails explicitly on bad names or existing directories.
+
+        ## Return Format
+
+        `{success, message, project_name, project_path, framework,
+        features_included, next_steps}`.
+
+        ## Examples
+
+        - create_vue_app(project_name="my-app", target_directory="./projects") ->
+          full scaffold with router + pinia + testing.
         """
         try:
             opts = {
@@ -238,6 +257,7 @@ def register_tools(mcp):
                 return {
                     "success": False,
                     "error": "Invalid project name. Use lowercase letters, numbers, and hyphens only.",
+                    "message": "Invalid project name (lowercase, numbers, hyphens only)",
                 }
 
             project_path = Path(target_directory) / project_name
@@ -245,6 +265,7 @@ def register_tools(mcp):
                 return {
                     "success": False,
                     "error": f"Directory {project_path} already exists",
+                    "message": f"Directory {project_path} already exists",
                 }
 
             project_path.mkdir(parents=True, exist_ok=False)
@@ -259,6 +280,7 @@ def register_tools(mcp):
 
             return {
                 "success": True,
+                "message": f"Scaffolded Vue app '{project_name}'",
                 "project_name": project_name,
                 "project_path": str(project_path),
                 "framework": "vue",
@@ -275,8 +297,8 @@ def register_tools(mcp):
             }
 
         except Exception as e:
-            logger.error(f"Error creating Vue app: {e}")
-            return {"success": False, "error": str(e)}
+            logger.exception(f"Error creating Vue app: {e}")
+            return {"success": False, "error": str(e), "message": f"Vue scaffold failed: {e}"}
 
 
 def _is_valid_project_name(name: str) -> bool:
