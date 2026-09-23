@@ -189,6 +189,9 @@ hook_type="fetch"
 - `generate_vue_component` - Vue 3 Composition API components
 - `generate_custom_hook` - React hooks (state, fetch, storage)
 
+### Maintenance Tools
+- `shutdown_server` - Graceful server shutdown after a grace period
+
 ## Austrian Dev Standards
 
 All generated code follows Austrian development efficiency principles:

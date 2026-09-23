@@ -18,7 +18,7 @@ generation, plus a React dashboard and Tauri shell.
 - Dashboard frontend: `web_sota/src` (API base: `VITE_API_TARGET`, default
   http://127.0.0.1:10853)
 
-## MCP tools (21, see glama.json)
+## MCP tools (22, see glama.json)
 
 Scaffolding: list_available_frameworks, create_react_app
 (project_name, target_directory, options), create_vue_app (same shape).
@@ -33,7 +33,8 @@ Components: generate_react_component, generate_vue_component
 (state|effect|fetch|storage only), setup_tailwind, setup_shadcn,
 scaffold_dashboard.
 Agentic: agentic_workflow_tool (deterministic planner, mode=plan, executes
-nothing), toggle_safety_guard (session state).
+nothing), toggle_safety_guard (session state), shutdown_server (graceful
+exit, destructive).
 Meta: get_help (category scaffolding|package|build|component|sampling).
 
 Tool conventions: Annotated[..., Field(description=...)] params (no Args:

@@ -1,4 +1,24 @@
 
+## [Unreleased] — 2026-09-23 (assfix pass 2: all HIGHs)
+
+### Fixed
+- All 22 tools: SOTA docstrings (Annotated+Field, Return Format, Examples),
+  annotations (readonly/mutating/destructive), dialogic `{success, message}`
+  returns, `logger.exception` on error paths (26 tests green)
+- Framework availability flags: svelte/next/vanilla marked unavailable with
+  explicit refusals; `shutdown_server` MCP tool added (22 tools total)
+- Catch-them-all pages complete: Inbox (warnings triage), Skills (file-backed
+  preprompts), Help (doc index + 22-tool table) + sidebar nav
+- Settings: live provider discovery UI with cards, model dropdowns, honest
+  empty/error states (removed hardcoded fallback model); onboarding cue with
+  `onboarding-cue` testid + localStorage persistence on Dashboard
+- Chat streams via NDJSON (`POST /api/llm/chat/stream`) with non-stream fallback
+- MCPB 3-4-100: system.md (3000+ words), user.md (4000 words), 111 examples
+- Biome: full `web_sota` tree clean (was 3404 errors), incl. config migrate to
+  2.5, tailwindDirectives, and per-file a11y/type fixes
+- Identity: withdrawn false 0.3.0/0.2.0 history, fixed glama/manifest/CLI copy
+- `@tauri-apps/api` added to webapp deps; docs bundle verified
+
 ## [Unreleased] — 2026-09-23 (assfix pass)
 
 ### Fixed
