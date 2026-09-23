@@ -46,6 +46,7 @@ from .tools import (
     component_tools,
     dashboard_tools,
     help_tools,
+    maintenance_tools,
     package_tools,
     scaffolding_tools,
 )
@@ -59,6 +60,7 @@ component_tools.register_tools(mcp)
 dashboard_tools.register_tools(mcp)
 agentic_tools.register_tools(mcp)
 help_tools.register_tools(mcp)
+maintenance_tools.register_tools(mcp)
 
 logger.info("Web Development MCP server initialized with all tool modules")
 

@@ -15,15 +15,34 @@ from ..utils.template_engine import process_template_file
 
 logger = logging.getLogger(__name__)
 
+_READ_ONLY = {"readonly": True}
+_MUTATING = {}
+_DESTRUCTIVE = {"destructive": True}
+
 
 def register_tools(mcp):
     """Register scaffolding tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=_READ_ONLY)
     def list_available_frameworks() -> dict[str, Any]:
-        """List all supported frontend frameworks and their features.
+        """List all known frontend frameworks, their features, and availability.
 
-        Returns comprehensive information about supported frameworks.
+        Only frameworks with `"available": true` have a working `create_*`
+        tool on this server. Entries with `"available": false` describe what
+        the option WOULD offer but cannot be scaffolded here — never claim
+        they work.
+
+        ## Return Format
+
+        `{success, message, frameworks, total_frameworks,
+        recommended_for_beginners, most_popular, best_performance}` where each
+        framework has `{name, description, features, use_cases, popularity,
+        learning_curve, available, status}`.
+
+        ## Examples
+
+        - list_available_frameworks() -> react/vue available; svelte/next/
+          vanilla carry `"available": false`.
         """
         frameworks = {
             "react": {
@@ -39,6 +58,8 @@ def register_tools(mcp):
                 "use_cases": ["SPAs", "Component libraries", "Complex UIs"],
                 "popularity": "Most popular",
                 "learning_curve": "Moderate",
+                "available": True,
+                "status": "supported (create_react_app)",
             },
             "vue": {
                 "name": "Vue 3",
@@ -47,6 +68,8 @@ def register_tools(mcp):
                 "use_cases": ["SPAs", "Progressive web apps", "Quick prototypes"],
                 "popularity": "Very popular",
                 "learning_curve": "Easy",
+                "available": True,
+                "status": "supported (create_vue_app)",
             },
             "svelte": {
                 "name": "SvelteKit",
@@ -61,6 +84,8 @@ def register_tools(mcp):
                 "use_cases": ["Performance-critical apps", "Small bundles", "SSR"],
                 "popularity": "Growing fast",
                 "learning_curve": "Easy",
+                "available": False,
+                "status": "not implemented (no create_svelte_app tool)",
             },
             "next": {
                 "name": "Next.js",
@@ -75,6 +100,8 @@ def register_tools(mcp):
                 "use_cases": ["Full-stack apps", "SSR/SSG", "E-commerce"],
                 "popularity": "Very popular",
                 "learning_curve": "Moderate",
+                "available": False,
+                "status": "not implemented (no create_next_app tool)",
             },
             "vanilla": {
                 "name": "Vanilla TypeScript",
@@ -83,16 +110,19 @@ def register_tools(mcp):
                 "use_cases": ["Libraries", "Learning", "Custom solutions"],
                 "popularity": "Foundation",
                 "learning_curve": "Requires JS knowledge",
+                "available": False,
+                "status": "not implemented (no scaffolder on this server)",
             },
         }
 
         return {
             "success": True,
+            "message": "2 of 5 frameworks scaffoldable (react, vue)",
             "frameworks": frameworks,
             "total_frameworks": len(frameworks),
-            "recommended_for_beginners": ["vue", "svelte"],
-            "most_popular": ["react", "next"],
-            "best_performance": ["svelte", "vanilla"],
+            "recommended_for_beginners": ["vue"],
+            "most_popular": ["react"],
+            "best_performance": ["react"],
         }
 
     @mcp.tool()

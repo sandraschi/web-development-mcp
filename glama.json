@@ -29,6 +29,7 @@
     "scaffold_dashboard",
     "agentic_workflow_tool",
     "toggle_safety_guard",
+    "shutdown_server",
     "get_help"
   ],
   "keywords": ["mcp-server", "fastmcp", "web-development", "scaffolding", "vite", "react", "vue", "sandraschi"]

@@ -13,6 +13,7 @@ from . import (
     component_tools,
     dashboard_tools,
     help_tools,
+    maintenance_tools,
     package_tools,
     scaffolding_tools,
 )
@@ -22,6 +23,7 @@ __all__ = [
     "component_tools",
     "dashboard_tools",
     "help_tools",
+    "maintenance_tools",
     "package_tools",
     "scaffolding_tools",
 ]
