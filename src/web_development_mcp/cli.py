@@ -220,8 +220,8 @@ def check_web_development_installation():
     else:
         print("❌ Web Development not found in PATH")
         print()
-        print("To install Web Development:")
-        print("1. Download from: https://www.web-development.org/download/")
+        print("To install the wrappee tooling, see docs/ONBOARDING.md")
+        print("(this check looks for an optional external binary, not a requirement)")
         print("2. Add Web Development to your system PATH")
         print("3. Or set WEB_DEVELOPMENT_EXECUTABLE environment variable")
 

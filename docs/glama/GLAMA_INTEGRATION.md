@@ -37,10 +37,10 @@ Repository metadata for Glama.ai indexing (located in repository root):
   "$schema": "https://glama.ai/mcp/schemas/server.json",
   "maintainers": ["sandraschi"],
   "name": "web-development-mcp",
-  "description": "FastMCP 2.14.3+ server for Web Development automation - programmatic control over 3D creation, manipulation, and rendering.",
+  "description": "FastMCP 3.4+ server for web development operations - React/Vue scaffolding, packages, Vite/TS/Biome config, component generation.",
   "type": "mcp_server",
   "status": "production",
-  "framework": "FastMCP 2.14.3+",
+  "framework": "FastMCP 3.4+",
   "transport": ["stdio", "http"]
 }
 ```
@@ -48,4 +48,3 @@ Repository metadata for Glama.ai indexing (located in repository root):
 ---
 
 *Last Updated: 2026-01-25*
-

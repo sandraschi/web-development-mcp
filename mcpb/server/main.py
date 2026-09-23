@@ -3,7 +3,8 @@
 Web Development MCP Server - MCPB Package Entry Point
 
 This is the main entry point for the MCPB-packaged Web Development MCP server.
-It provides AI-powered 3D creation and manipulation capabilities.
+It provides web development operations: scaffolding, packages, build config,
+and component generation.
 """
 
 import os
