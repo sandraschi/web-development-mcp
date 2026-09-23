@@ -81,7 +81,7 @@ def register_tools(mcp: FastMCP):
                     "scaffold_dashboard": "Full dashboard scaffold",
                 }
 
-            return _success_response(help_info)
+            return _success_response(help_info, "Help retrieved")
         except Exception as e:
             return _error_response(str(e), "internal_error")
 
