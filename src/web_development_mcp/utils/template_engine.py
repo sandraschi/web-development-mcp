@@ -190,9 +190,10 @@ class TemplateEngine:
         template_dir = Path(template_dir).resolve()
         if template_dir.exists() and template_dir not in self.template_dirs:
             self.template_dirs.append(template_dir)
-            # Update the loader's search path
-            if hasattr(self.env.loader, "searchpath"):
-                self.env.loader.searchpath.append(str(template_dir))
+            # Update the loader's search path (narrowed: hasattr does not narrow for pyright)
+            loader = self.env.loader
+            if isinstance(loader, FileSystemLoader) and isinstance(loader.searchpath, list):
+                loader.searchpath.append(str(template_dir))
             else:
                 logger.warning("Cannot update search path for current loader type")
 
@@ -211,7 +212,7 @@ class TemplateEngine:
             return {
                 "name": template.name,
                 "filename": template.filename,
-                "is_up_to_date": not template.should_reload,
+                "is_up_to_date": template.is_up_to_date,
                 "variables": list(template.blocks.keys()) if hasattr(template, "blocks") else [],
             }
         except (TemplateNotFound, TemplateSyntaxError) as e:
