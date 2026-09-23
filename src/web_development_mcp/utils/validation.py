@@ -119,7 +119,7 @@ def validate_package_name(name: str) -> tuple[bool, str]:
             return False, "Invalid scoped package name format. Expected: @scope/name"
 
         scope = parts[0][1:]  # Remove @
-        pkg_name = parts[1]  # noqa: F841
+        parts[1]
 
         if not re.match(PACKAGE_NAME_PATTERN, scope):
             return False, "Invalid scope name"
