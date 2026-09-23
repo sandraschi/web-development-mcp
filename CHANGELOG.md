@@ -1,4 +1,30 @@
 
+## [Unreleased] — 2026-09-23 (assfix pass)
+
+### Fixed
+- CORS `allow_origins=["*"]` replaced with fleet standard (explicit origins +
+  unconditional tailnet/LAN/Tauri regex) in both backends; MCP HTTP now serves
+  the CORS-wrapped app via uvicorn instead of `mcp.run()` (which dropped middleware)
+- Webapp backend route bundle: `/api/status`, `/api/capabilities`, `/api/metrics`,
+  `/api/skills` (file-backed), `/api/llm/discover|providers|models|onboarding`,
+  `POST /api/llm/chat` + `/stream` (Ollama proxy, honest 503 without LLM),
+  `/api/v1/diagnostics`, `POST /api/shutdown`; hardcoded port 8000 removed
+- Chat page uses the backend proxy + skill-first preprompt + LLM status indicator
+- Dashboard reads real `/api/metrics` + `/api/logs` with loading/error/empty states
+- Tests rewritten against the real tool API (18 pass, was 3 collection errors);
+  fixed real bugs: missing `project_name` template context, Jinja/JSX `{{ }}`
+  collision in `App.tsx.template`, unbound `pages_dir`/`component_code`/`hook_code`
+- Agentic stub replaced with a deterministic planner; `get_help` lists real tools;
+  safety guard has real session state
+- Ruff: removed S110/S112 ignores (caught a silent bridge-proxy swallow), added T20;
+  pyright 0 errors (was 20); removed dead `tools/scaffolding/` subtree
+- Fleet-standard `start.ps1` (zombie clear, TCP readiness poll, WorkingDirectory);
+  justfile core recipes (`serve|test|fmt|certify|e2e`) with single-line bodies
+- Session injection: `.cursorrules` context, `.windsurfrules`, copilot instructions,
+  `.claude-plugin` + `hooks/`; real AGENTS.md/CLAUDE.md; `.gitattributes` (LF)
+- Five-gate CI (uv, ruff, pyright, pytest, biome, tsc) + renovate; pre-commit hook
+  installed with scoped Biome gate; `.env.example`; glama.json refreshed
+
 ## [Unreleased] — 2026-06-14
 
 ### Added
@@ -169,4 +195,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 *This changelog follows the principles of [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).*
-

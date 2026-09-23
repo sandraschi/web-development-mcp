@@ -2,7 +2,7 @@
   "manifest_version": "0.2",
   "name": "web-development-mcp",
   "version": "0.1.0",
-  "description": "MCP server for Web Development 3D creation and manipulation",
+  "description": "Universal web development operations MCP server (React/Vue scaffolding, packages, Vite/TS/Biome config, component generation)",
   "author": {
     "name": "Sandra Schi",
     "email": "sandra@example.com"

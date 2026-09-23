@@ -1,10 +1,10 @@
-# Web Development MCP 
+# Web Development MCP
 
 <p align="center">
   <a href="https://github.com/casey/just"><img src="https://img.shields.io/badge/just-ready_to_go-7c5cfc?style=flat-square&logo=just&logoColor=white" alt="Just"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
   <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.13+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
-  <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.2-7c5cfc?style=flat-square" alt="FastMCP"></a>
+  <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.4-7c5cfc?style=flat-square" alt="FastMCP"></a>
 </p>
 
 
@@ -94,7 +94,7 @@ cd web-development-mcp
 just
 ```
 
-This opens an interactive dashboard showing all available commands. Run `just bootstrap` to install dependencies, then `just serve` or `just dev` to start.
+This opens an interactive dashboard showing all available commands. Run `just bootstrap` to install dependencies, then `just serve` to start the full stack.
 
 ### Manual Setup
 
@@ -168,11 +168,11 @@ hook_type="fetch"
 ### Scaffolding Tools
 - `list_available_frameworks` - Show supported frameworks and features
 - `create_react_app` - Create React + TypeScript + Vite project
-- `create_vue_app` - Create Vue 3 + TypeScript + Vite project  
-- `create_svelte_app` - Create SvelteKit + TypeScript project (planned)
-- `create_next_app` - Create Next.js + TypeScript project (planned)
+- `create_vue_app` - Create Vue 3 + TypeScript + Vite project
+- `create_svelte_app` - SvelteKit + TypeScript project (NOT IMPLEMENTED)
+- `create_next_app` - Next.js + TypeScript project (NOT IMPLEMENTED)
 
-### Package Tools  
+### Package Tools
 - `detect_package_manager` - Auto-detect npm/yarn/pnpm
 - `install_packages` - Install dependencies with smart defaults
 - `update_packages` - Update packages with conflict resolution
@@ -180,13 +180,13 @@ hook_type="fetch"
 
 ### Build Tools
 - `configure_typescript` - TypeScript setup with strict rules
-- `configure_eslint` - ESLint + Austrian dev standards
+- `configure_biome` - Biome lint+format (replaces ESLint + Prettier)
 - `configure_vite` - Vite optimization and development server
 - `setup_testing_config` - Vitest + Testing Library setup
 
 ### Component Tools
 - `generate_react_component` - Smart React component generation
-- `generate_vue_component` - Vue 3 Composition API components  
+- `generate_vue_component` - Vue 3 Composition API components
 - `generate_custom_hook` - React hooks (state, fetch, storage)
 
 ## Austrian Dev Standards
@@ -205,12 +205,12 @@ All generated code follows Austrian development efficiency principles:
 |-----------|-------------|------------|---------|--------------|
 | React     |           |          |       |            |
 | Vue 3     |           |          |       |            |
-| SvelteKit |  Planned  |  Planned |  Planned |  Planned |
-| Next.js   |  Planned  |          |       |  Planned |
+| SvelteKit |  Not implemented  |  Planned |  Planned |  Planned |
+| Next.js   |  Not implemented  |          |       |  Planned |
 
 ## Development
 
-Built with FastMCP 3.1.0 for maximum compatibility and performance.
+Built with FastMCP 3.4 for maximum compatibility and performance.
 
 
 ## 🛡️ Industrial Quality Stack

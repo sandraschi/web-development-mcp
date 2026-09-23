@@ -1,0 +1,62 @@
+# web-development-mcp — llms-full.txt
+
+Universal web development operations MCP server (FastMCP >=3.4.4,<4):
+React/Vue scaffolding, package management, Vite/TS/Biome config, component
+generation, plus a React dashboard and Tauri shell.
+
+## Ports (operations/WEBAPP_PORTS.md)
+
+- 10852 frontend (vite, web_sota)
+- 10853 backend (uvicorn web_sota/backend server:app) + MCP HTTP (/mcp)
+
+## Entry points
+
+- MCP stdio/HTTP: `src/web_development_mcp/mcp_server.py` (`main()`),
+  transports in `transport.py` (`--stdio` default, `--http`, `--sse` deprecated)
+- CLI: `src/web_development_mcp/cli.py`
+- Dashboard backend: `web_sota/backend/server.py` (`server:app`)
+- Dashboard frontend: `web_sota/src` (API base: `VITE_API_TARGET`, default
+  http://127.0.0.1:10853)
+
+## MCP tools (21, see glama.json)
+
+Scaffolding: list_available_frameworks, create_react_app
+(project_name, target_directory, options), create_vue_app (same shape).
+SvelteKit/Next.js scaffolds are NOT implemented — never advertise them.
+Packages: detect_package_manager, install_packages, update_packages
+(check_only=True is read-only), remove_packages (DESTRUCTIVE),
+analyze_package_json (read-only).
+Build: configure_typescript, configure_biome, configure_vite
+(pass the project's own port, never another repo's), setup_testing_config.
+Components: generate_react_component, generate_vue_component
+(composition_api=True only), generate_custom_hook
+(state|effect|fetch|storage only), setup_tailwind, setup_shadcn,
+scaffold_dashboard.
+Agentic: agentic_workflow_tool (deterministic planner, mode=plan, executes
+nothing), toggle_safety_guard (session state).
+Meta: get_help (category scaffolding|package|build|component|sampling).
+
+Tool conventions: Annotated[..., Field(description=...)] params (no Args:
+blocks), `## Return Format` + `## Examples` docstrings, dialogic returns
+{success, message, ...}, annotations readonly/mutating/destructive.
+
+## REST endpoints (webapp backend)
+
+GET /health, /api/health, /api/status, /api/capabilities, /api/metrics,
+/api/skills (file-backed from skills/*/SKILL.md), /api/logs (+/stats,
+/export, DELETE), /api/llm/discover (live TCP probe :11434/:1234),
+/api/llm/providers, /api/llm/models, /api/llm/onboarding,
+POST /api/llm/chat (+/stream, Ollama proxy, honest 503 without LLM),
+GET /api/v1/diagnostics, POST /api/shutdown (200 now, exit +500ms).
+
+## Env vars (see .env.example)
+
+MCP_TRANSPORT/HOST/PORT/PATH, MCP_BRIDGE_URLS, WEB_PORT, VITE_PORT,
+WEB_FRONTEND_PORT, OPENAI_API_KEY / ANTHROPIC_API_KEY (server-side only),
+WEB_DEVELOPMENT_EXECUTABLE.
+
+## Session files
+
+.cursorrules + .windsurfrules (## Session Context), .github/copilot-instructions.md,
+.claude-plugin/plugin.json + hooks/hooks.json, skills/webdev-expert/SKILL.md
+(chat preprompt source). Recipes: just serve|lint|fix|fmt|test|certify|e2e.
