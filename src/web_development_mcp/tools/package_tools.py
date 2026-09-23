@@ -8,21 +8,19 @@ import json
 import logging
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import Field
 
 logger = logging.getLogger(__name__)
 
+_READ_ONLY = {"readonly": True}
+_MUTATING = {}
+_DESTRUCTIVE = {"destructive": True}
+
 
 def _detect_framework(deps: dict, dev_deps: dict) -> str | None:
-    """Detect the frontend framework being used.
-
-    Args:
-        deps: Production dependencies
-        dev_deps: Development dependencies
-
-    Returns:
-        Framework name or None
-    """
+    """Detect the frontend framework being used."""
     all_deps = {**deps, **dev_deps}
 
     if "next" in all_deps:
@@ -45,15 +43,7 @@ def _detect_framework(deps: dict, dev_deps: dict) -> str | None:
 
 
 def _detect_build_tool(deps: dict, dev_deps: dict) -> str | None:
-    """Detect the build tool being used.
-
-    Args:
-        deps: Production dependencies
-        dev_deps: Development dependencies
-
-    Returns:
-        Build tool name or None
-    """
+    """Detect the build tool being used."""
     all_deps = {**deps, **dev_deps}
 
     if "vite" in all_deps:
@@ -71,14 +61,25 @@ def _detect_build_tool(deps: dict, dev_deps: dict) -> str | None:
     return None
 
 
-def detect_package_manager(project_path: str) -> dict[str, Any]:
+def detect_package_manager(
+    project_path: Annotated[str, Field(description="Path to the project directory")],
+) -> dict[str, Any]:
     """Detect which package manager is being used in a project.
 
-    Args:
-        project_path: Path to the project directory
+    Inspects lockfiles (package-lock.json, yarn.lock, bun.lock,
+    pnpm-lock.yaml) and reports the primary manager by precedence
+    bun > pnpm > yarn > npm.
 
-    Returns:
-        Dictionary containing package manager information
+    ## Return Format
+
+    `{success, message, project_path, package_managers, primary_manager,
+    package_json_exists, package_json_path, lock_files}`.
+
+    ## Examples
+
+    - detect_package_manager(project_path="D:/proj") ->
+      `{success: True, primary_manager: "bun", ...}` when bun.lock exists.
+    - Empty directory -> `{success: True, primary_manager: None, ...}`.
     """
     try:
         path = Path(project_path)
@@ -113,6 +114,7 @@ def detect_package_manager(project_path: str) -> dict[str, Any]:
 
         return {
             "success": True,
+            "message": f"Detected package manager: {primary or 'none'}",
             "project_path": str(project_path),
             "package_managers": package_managers,
             "primary_manager": primary,
@@ -127,26 +129,31 @@ def detect_package_manager(project_path: str) -> dict[str, Any]:
         }
 
     except Exception as e:
-        logger.error(f"Error detecting package manager: {e}")
-        return {"success": False, "error": str(e)}
+        logger.exception(f"Error detecting package manager: {e}")
+        return {"success": False, "error": str(e), "message": f"Package manager detection failed: {e}"}
 
 
 def install_packages(
-    project_path: str,
-    packages: list[str],
-    package_manager: str | None = None,
-    dev_dependencies: bool = False,
+    project_path: Annotated[str, Field(description="Path to the project directory")],
+    packages: Annotated[list[str], Field(description="List of package names to install")],
+    package_manager: Annotated[str | None, Field(description="Package manager to use (auto-detect if None)")] = None,
+    dev_dependencies: Annotated[bool, Field(description="Install as dev dependencies")] = False,
 ) -> dict[str, Any]:
-    """Install npm packages in a project.
+    """Install packages in a project with the detected (or given) manager.
 
-    Args:
-        project_path: Path to the project directory
-        packages: List of package names to install
-        package_manager: Specific package manager to use (auto-detect if None)
-        dev_dependencies: Install as dev dependencies
+    Runs the real install subprocess (npm/yarn/bun/pnpm) with a 5-minute
+    timeout and reports stdout/stderr. Mutates `node_modules` and lockfiles.
 
-    Returns:
-        Dictionary with installation results
+    ## Return Format
+
+    `{success, message, package_manager, packages_installed,
+    dev_dependencies, command, output, error}`.
+
+    ## Examples
+
+    - install_packages(project_path="D:/proj", packages=["axios"]) ->
+      runs `npm install axios` (or the detected manager equivalent).
+    - install_packages(..., dev_dependencies=True) -> `npm install --save-dev ...`.
     """
     try:
         # Auto-detect package manager if not specified
@@ -178,7 +185,11 @@ def install_packages(
                 cmd.append("--save-dev")
             cmd.extend(packages)
         else:
-            return {"success": False, "error": f"Unsupported package manager: {package_manager}"}
+            return {
+                "success": False,
+                "error": f"Unsupported package manager: {package_manager}",
+                "message": f"Unsupported package manager: {package_manager}",
+            }
 
         # Execute command
         result = subprocess.run(
@@ -189,36 +200,53 @@ def install_packages(
             timeout=300,  # 5 minute timeout
         )
 
+        ok = result.returncode == 0
         return {
-            "success": result.returncode == 0,
+            "success": ok,
+            "message": f"Installed {packages} with {package_manager}" if ok else f"Install failed: {result.stderr}",
             "package_manager": package_manager,
-            "packages_installed": packages if result.returncode == 0 else [],
+            "packages_installed": packages if ok else [],
             "dev_dependencies": dev_dependencies,
             "command": " ".join(cmd),
-            "output": result.stdout if result.returncode == 0 else result.stderr,
-            "error": result.stderr if result.returncode != 0 else None,
+            "output": result.stdout if ok else result.stderr,
+            "error": result.stderr if not ok else None,
         }
 
     except Exception as e:
-        logger.error(f"Error installing packages: {e}")
-        return {"success": False, "error": str(e)}
+        logger.exception(f"Error installing packages: {e}")
+        return {"success": False, "error": str(e), "message": f"Package install failed: {e}"}
 
 
-def analyze_package_json(project_path: str) -> dict[str, Any]:
+def analyze_package_json(
+    project_path: Annotated[str, Field(description="Path to the project directory")],
+) -> dict[str, Any]:
     """Analyze package.json for insights and potential issues.
 
-    Args:
-        project_path: Path to the project directory
+    Read-only: counts dependencies, detects framework/build tool, flags
+    outdated React, missing tsconfig, absent testing setup, and known
+    vulnerable packages (node-sass, request, bower).
 
-    Returns:
-        Dictionary with analysis results
+    ## Return Format
+
+    `{success, message, project_path, package_info, dependencies, analysis,
+    issues, warnings, potentially_vulnerable}`. Missing package.json ->
+    `{success: False, error, message}`.
+
+    ## Examples
+
+    - analyze_package_json(project_path="D:/proj") ->
+      `{success: True, analysis: {framework_detected: "React", ...}, ...}`.
     """
     try:
         path = Path(project_path)
         package_json_path = path / "package.json"
 
         if not package_json_path.exists():
-            return {"success": False, "error": "package.json not found"}
+            return {
+                "success": False,
+                "error": "package.json not found",
+                "message": f"No package.json in {project_path}",
+            }
 
         with open(package_json_path, encoding="utf-8") as f:
             package_data = json.load(f)
@@ -259,6 +287,7 @@ def analyze_package_json(project_path: str) -> dict[str, Any]:
 
         return {
             "success": True,
+            "message": f"Analyzed {package_data.get('name', 'package.json')}: {len(deps) + len(dev_deps)} deps",
             "project_path": str(project_path),
             "package_info": {
                 "name": package_data.get("name"),
@@ -285,26 +314,32 @@ def analyze_package_json(project_path: str) -> dict[str, Any]:
         }
 
     except Exception as e:
-        logger.error(f"Error analyzing package.json: {e}")
-        return {"success": False, "error": str(e)}
+        logger.exception(f"Error analyzing package.json: {e}")
+        return {"success": False, "error": str(e), "message": f"package.json analysis failed: {e}"}
 
 
 def update_packages(
-    project_path: str,
-    packages: list[str] | None = None,
-    package_manager: str | None = None,
-    check_only: bool = False,
+    project_path: Annotated[str, Field(description="Path to the project directory")],
+    packages: Annotated[list[str] | None, Field(description="Specific packages to update (all if None)")] = None,
+    package_manager: Annotated[str | None, Field(description="Package manager to use (auto-detect if None)")] = None,
+    check_only: Annotated[bool, Field(description="Only check for updates without installing")] = False,
 ) -> dict[str, Any]:
-    """Update npm packages to latest versions.
+    """Update project packages to latest versions (or just check).
 
-    Args:
-        project_path: Path to the project directory
-        packages: Specific packages to update (update all if None)
-        package_manager: Package manager to use (auto-detect if None)
-        check_only: Only check for updates without installing
+    With check_only=True this is read-only (`npm outdated` et al);
+    otherwise it mutates lockfiles and `node_modules`.
 
-    Returns:
-        Dictionary with update results
+    ## Return Format
+
+    `{success, message, package_manager, check_only, packages_updated,
+    outdated_packages, command, output, error}`.
+
+    ## Examples
+
+    - update_packages(project_path="D:/proj", check_only=True) ->
+      `{success: True, outdated_packages: {...}}` without changing anything.
+    - update_packages(project_path="D:/proj", packages=["react"]) ->
+      runs the manager's update/upgrade for react.
     """
     try:
         # Auto-detect package manager
@@ -325,7 +360,11 @@ def update_packages(
             elif package_manager == "pnpm":
                 cmd = ["pnpm", "outdated", "--json"]
             else:
-                return {"success": False, "error": f"Unsupported: {package_manager}"}
+                return {
+                    "success": False,
+                    "error": f"Unsupported: {package_manager}",
+                    "message": f"Unsupported package manager: {package_manager}",
+                }
         else:
             if package_manager == "npm":
                 cmd = ["npm", "update"]
@@ -344,7 +383,11 @@ def update_packages(
                 if packages:
                     cmd.extend(packages)
             else:
-                return {"success": False, "error": f"Unsupported: {package_manager}"}
+                return {
+                    "success": False,
+                    "error": f"Unsupported: {package_manager}",
+                    "message": f"Unsupported package manager: {package_manager}",
+                }
 
         # Execute command
         result = subprocess.run(cmd, cwd=project_path, capture_output=True, text=True, timeout=300)
@@ -357,32 +400,43 @@ def update_packages(
             except json.JSONDecodeError:
                 output = result.stdout
 
+        ok = result.returncode == 0
         return {
-            "success": result.returncode == 0,
+            "success": ok,
+            "message": f"Update check via {package_manager}: {'ok' if ok else 'failed'}"
+            if check_only
+            else f"Updated {packages or 'all'} with {package_manager}: {'ok' if ok else 'failed'}",
             "package_manager": package_manager,
             "check_only": check_only,
-            "packages_updated": packages if not check_only and result.returncode == 0 else [],
-            "outdated_packages": output if check_only and result.returncode == 0 else {},
+            "packages_updated": packages if not check_only and ok else [],
+            "outdated_packages": output if check_only and ok else {},
             "command": " ".join(cmd),
-            "output": result.stdout if result.returncode == 0 else result.stderr,
-            "error": result.stderr if result.returncode != 0 else None,
+            "output": result.stdout if ok else result.stderr,
+            "error": result.stderr if not ok else None,
         }
 
     except Exception as e:
-        logger.error(f"Error updating packages: {e}")
-        return {"success": False, "error": str(e)}
+        logger.exception(f"Error updating packages: {e}")
+        return {"success": False, "error": str(e), "message": f"Package update failed: {e}"}
 
 
-def remove_packages(project_path: str, packages: list[str], package_manager: str | None = None) -> dict[str, Any]:
-    """Remove npm packages from a project.
+def remove_packages(
+    project_path: Annotated[str, Field(description="Path to the project directory")],
+    packages: Annotated[list[str], Field(description="List of package names to remove")],
+    package_manager: Annotated[str | None, Field(description="Package manager to use (auto-detect if None)")] = None,
+) -> dict[str, Any]:
+    """Remove packages from a project. DESTRUCTIVE: edits package.json,
+    lockfiles, and deletes installed code.
 
-    Args:
-        project_path: Path to the project directory
-        packages: List of package names to remove
-        package_manager: Specific package manager to use (auto-detect if None)
+    ## Return Format
 
-    Returns:
-        Dictionary with removal results
+    `{success, message, package_manager, packages_removed, command, output,
+    error}`.
+
+    ## Examples
+
+    - remove_packages(project_path="D:/proj", packages=["moment"]) ->
+      runs `npm uninstall moment` (or the detected manager equivalent).
     """
     try:
         if not package_manager:
@@ -400,34 +454,36 @@ def remove_packages(project_path: str, packages: list[str], package_manager: str
         elif package_manager == "pnpm":
             cmd = ["pnpm", "remove", *packages]
         else:
-            return {"success": False, "error": f"Unsupported: {package_manager}"}
+            return {
+                "success": False,
+                "error": f"Unsupported: {package_manager}",
+                "message": f"Unsupported package manager: {package_manager}",
+            }
 
         result = subprocess.run(cmd, cwd=project_path, capture_output=True, text=True, timeout=300)
 
+        ok = result.returncode == 0
         return {
-            "success": result.returncode == 0,
+            "success": ok,
+            "message": f"Removed {packages} with {package_manager}" if ok else f"Removal failed: {result.stderr}",
             "package_manager": package_manager,
-            "packages_removed": packages if result.returncode == 0 else [],
+            "packages_removed": packages if ok else [],
             "command": " ".join(cmd),
-            "output": result.stdout if result.returncode == 0 else result.stderr,
-            "error": result.stderr if result.returncode != 0 else None,
+            "output": result.stdout if ok else result.stderr,
+            "error": result.stderr if not ok else None,
         }
 
     except Exception as e:
-        logger.error(f"Error removing packages: {e}")
-        return {"success": False, "error": str(e)}
+        logger.exception(f"Error removing packages: {e}")
+        return {"success": False, "error": str(e), "message": f"Package removal failed: {e}"}
 
 
 def register_tools(mcp):
-    """Register all package management tools with the MCP server.
-
-    Args:
-        mcp: The MCP server instance to register tools with
-    """
-    mcp.tool()(detect_package_manager)
-    mcp.tool()(install_packages)
-    mcp.tool()(analyze_package_json)
-    mcp.tool()(update_packages)
-    mcp.tool()(remove_packages)
+    """Register all package management tools with the MCP server."""
+    mcp.tool(annotations=_READ_ONLY)(detect_package_manager)
+    mcp.tool(annotations=_MUTATING)(install_packages)
+    mcp.tool(annotations=_READ_ONLY)(analyze_package_json)
+    mcp.tool(annotations=_MUTATING)(update_packages)
+    mcp.tool(annotations=_DESTRUCTIVE)(remove_packages)
 
     logger.info("Package management tools registered successfully")

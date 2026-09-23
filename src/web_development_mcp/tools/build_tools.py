@@ -1,34 +1,45 @@
 """
 Build configuration and development tools.
 
-Handles Vite, TypeScript, ESLint, and other build tool configurations.
+Handles Vite, TypeScript, Biome, and other build tool configurations.
 """
 
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import Field
 
 logger = logging.getLogger(__name__)
+
+_MUTATING = {}
 
 
 def register_tools(mcp):
     """Register build tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING)
     def configure_typescript(
-        project_path: str,
-        strict_mode: bool = True,
-        target: str = "ES2020",
-        include_react: bool = False,
+        project_path: Annotated[str, Field(description="Path to the project directory")],
+        strict_mode: Annotated[bool, Field(description="Enable strict TypeScript checking")] = True,
+        target: Annotated[str, Field(description="TypeScript compilation target")] = "ES2020",
+        include_react: Annotated[bool, Field(description="Include React-specific settings (jsx react-jsx)")] = False,
     ) -> dict[str, Any]:
-        """Create or update TypeScript configuration.
+        """Create or update tsconfig.json with strict, modern defaults.
 
-        Args:
-            project_path: Path to the project directory
-            strict_mode: Enable strict TypeScript checking
-            target: TypeScript compilation target
-            include_react: Include React-specific TypeScript settings
+        Writes tsconfig.json (path mapping @/*, sourcemaps, ESM bundler
+        resolution) plus React JSX and noUnusedLocals/Parameters when asked.
+
+        ## Return Format
+
+        `{success, message, project_path, config_file, strict_mode, target,
+        react_support, features}`.
+
+        ## Examples
+
+        - configure_typescript(project_path="D:/proj", strict_mode=True,
+          include_react=True) -> writes tsconfig.json with jsx react-jsx.
         """
         try:
             path = Path(project_path)
@@ -87,6 +98,7 @@ def register_tools(mcp):
 
             return {
                 "success": True,
+                "message": f"Wrote tsconfig.json (strict={strict_mode}, react={include_react})",
                 "project_path": project_path,
                 "config_file": "tsconfig.json",
                 "strict_mode": strict_mode,
@@ -102,23 +114,27 @@ def register_tools(mcp):
             }
 
         except Exception as e:
-            logger.error(f"Error configuring TypeScript: {e}")
-            return {"success": False, "error": str(e)}
+            logger.exception(f"Error configuring TypeScript: {e}")
+            return {"success": False, "error": str(e), "message": f"TypeScript config failed: {e}"}
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING)
     def configure_biome(
-        project_path: str,
-        framework: str = "react",
-        typescript: bool = True,
-        strict_rules: bool = True,
+        project_path: Annotated[str, Field(description="Path to the project directory")],
+        framework: Annotated[str, Field(description="Frontend framework (react, vue, svelte)")] = "react",
+        typescript: Annotated[bool, Field(description="Include TypeScript strict rules")] = True,
+        strict_rules: Annotated[bool, Field(description="Use strict rule set")] = True,
     ) -> dict[str, Any]:
-        """Create Biome configuration (replaces ESLint + Prettier).
+        """Create biome.json (replaces ESLint + Prettier).
 
-        Args:
-            project_path: Path to the project directory
-            framework: Frontend framework (react, vue, svelte)
-            typescript: Include TypeScript strict rules
-            strict_rules: Use strict rule set
+        Writes formatter + linter config with organize-imports on.
+
+        ## Return Format
+
+        `{success, message, config_files}`.
+
+        ## Examples
+
+        - configure_biome(project_path="D:/proj") -> writes biome.json.
         """
         try:
             path = Path(project_path)
@@ -149,19 +165,31 @@ def register_tools(mcp):
                 "message": "Biome configured (replaces ESLint + Prettier)",
             }
         except Exception as e:
-            return {"success": False, "error": str(e)}
+            logger.exception(f"Error configuring Biome: {e}")
+            return {"success": False, "error": str(e), "message": f"Biome config failed: {e}"}
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING)
     def configure_vite(
-        project_path: str, framework: str = "react", port: int = 11099, enable_https: bool = False
+        project_path: Annotated[str, Field(description="Path to the project directory")],
+        framework: Annotated[str, Field(description="Frontend framework (react, vue, svelte)")] = "react",
+        port: Annotated[int, Field(description="Development server port")] = 11099,
+        enable_https: Annotated[bool, Field(description="Enable HTTPS for development server")] = False,
     ) -> dict[str, Any]:
-        """Create Vite configuration optimized for development.
+        """Create vite.config.ts optimized for development.
 
-        Args:
-            project_path: Path to the project directory
-            framework: Frontend framework (react, vue, svelte)
-            port: Development server port
-            enable_https: Enable HTTPS for development server
+        Writes path aliases, sourcemaps, bundle splitting, and the dev
+        server port. Never hardcode another repo's fleet port here — pass
+        the project's own port.
+
+        ## Return Format
+
+        `{success, message, project_path, framework, config_file,
+        server_config, features}`.
+
+        ## Examples
+
+        - configure_vite(project_path="D:/proj", framework="react", port=11099) ->
+          writes vite.config.ts serving on 11099.
         """
         try:
             path = Path(project_path)
@@ -226,6 +254,7 @@ export default defineConfig({{
 
             return {
                 "success": True,
+                "message": f"Wrote vite.config.ts for {framework} on port {port}",
                 "project_path": project_path,
                 "framework": framework,
                 "config_file": "vite.config.ts",
@@ -241,19 +270,26 @@ export default defineConfig({{
             }
 
         except Exception as e:
-            logger.error(f"Error configuring Vite: {e}")
-            return {"success": False, "error": str(e)}
+            logger.exception(f"Error configuring Vite: {e}")
+            return {"success": False, "error": str(e), "message": f"Vite config failed: {e}"}
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING)
     def setup_testing_config(
-        project_path: str, framework: str = "react", test_runner: str = "vitest"
+        project_path: Annotated[str, Field(description="Path to the project directory")],
+        framework: Annotated[str, Field(description="Frontend framework (react, vue, svelte)")] = "react",
+        test_runner: Annotated[str, Field(description="Testing framework (vitest, jest)")] = "vitest",
     ) -> dict[str, Any]:
-        """Setup testing configuration with Vitest and Testing Library.
+        """Write Vitest + Testing Library config (vitest.config.ts, src/test/setup.ts).
 
-        Args:
-            project_path: Path to the project directory
-            framework: Frontend framework (react, vue, svelte)
-            test_runner: Testing framework (vitest, jest)
+        ## Return Format
+
+        `{success, message, project_path, framework, test_runner,
+        config_files, features}`.
+
+        ## Examples
+
+        - setup_testing_config(project_path="D:/proj") ->
+          writes vitest.config.ts + src/test/setup.ts (JSDOM).
         """
         try:
             path = Path(project_path)
@@ -292,6 +328,7 @@ export default defineConfig({
 
             return {
                 "success": True,
+                "message": f"Wrote {test_runner} testing config for {framework}",
                 "project_path": project_path,
                 "framework": framework,
                 "test_runner": test_runner,
@@ -305,5 +342,5 @@ export default defineConfig({
             }
 
         except Exception as e:
-            logger.error(f"Error setting up testing: {e}")
-            return {"success": False, "error": str(e)}
+            logger.exception(f"Error setting up testing: {e}")
+            return {"success": False, "error": str(e), "message": f"Testing setup failed: {e}"}
