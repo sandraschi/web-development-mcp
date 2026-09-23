@@ -6,32 +6,47 @@ Handles smart component creation with best practices and Austrian dev standards.
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import Field
 
 logger = logging.getLogger(__name__)
+
+_READ_ONLY = {"readonly": True}
+_MUTATING = {}
+_DESTRUCTIVE = {"destructive": True}
 
 
 def register_tools(mcp):
     """Register component generation tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING)
     def generate_react_component(
-        project_path: str,
-        component_name: str,
-        component_type: str = "functional",
-        include_styles: bool = True,
-        include_tests: bool = True,
-        props_interface: dict[str, str] | None = None,
+        project_path: Annotated[str, Field(description="Path to the project directory")],
+        component_name: Annotated[str, Field(description="Name of the component (PascalCase)")],
+        component_type: Annotated[str, Field(description="Type of component (functional, class)")] = "functional",
+        include_styles: Annotated[bool, Field(description="Create accompanying CSS module file")] = True,
+        include_tests: Annotated[bool, Field(description="Create test file")] = True,
+        props_interface: Annotated[
+            dict[str, str] | None,
+            Field(description='Optional props interface definition {"propName": "propType"}'),
+        ] = None,
     ) -> dict[str, Any]:
         """Generate a React component with TypeScript and best practices.
 
-        Args:
-            project_path: Path to the project directory
-            component_name: Name of the component (PascalCase)
-            component_type: Type of component (functional, class)
-            include_styles: Create accompanying CSS module file
-            include_tests: Create test file
-            props_interface: Optional props interface definition {"propName": "propType"}
+        Writes the component directory with TSX, CSS module (optional),
+        test file (optional), and a barrel `index.ts`.
+
+        ## Return Format
+
+        `{success, message, component_name, component_type, files_created,
+        features, import_statement, usage_example}`.
+
+        ## Examples
+
+        - generate_react_component(project_path="D:/proj",
+          component_name="UserCard", props_interface={"name": "string"}) ->
+          writes `src/components/UserCard/`.
         """
         try:
             path = Path(project_path)
@@ -41,6 +56,7 @@ def register_tools(mcp):
                 return {
                     "success": False,
                     "error": "Component name must be PascalCase (e.g., MyComponent)",
+                    "message": "Component name must be PascalCase (e.g., MyComponent)",
                 }
 
             # Create component directory
@@ -138,6 +154,7 @@ describe('{component_name}', () => {{
 
             return {
                 "success": True,
+                "message": f"Generated React component {component_name}",
                 "component_name": component_name,
                 "component_type": component_type,
                 "files_created": files_created,
@@ -153,31 +170,41 @@ describe('{component_name}', () => {{
             }
 
         except Exception as e:
-            logger.error(f"Error generating React component: {e}")
-            return {"success": False, "error": str(e)}
+            logger.exception(f"Error generating React component: {e}")
+            return {"success": False, "error": str(e), "message": f"React component failed: {e}"}
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING)
     def generate_vue_component(
-        project_path: str,
-        component_name: str,
-        composition_api: bool = True,
-        include_styles: bool = True,
-        include_tests: bool = True,
+        project_path: Annotated[str, Field(description="Path to the project directory")],
+        component_name: Annotated[str, Field(description="Name of the component (PascalCase)")],
+        composition_api: Annotated[bool, Field(description="Use Composition API (only supported variant)")] = True,
+        include_styles: Annotated[bool, Field(description="Include scoped styles")] = True,
+        include_tests: Annotated[bool, Field(description="Create test file")] = True,
     ) -> dict[str, Any]:
-        """Generate a Vue 3 component with TypeScript and Composition API.
+        """Generate a Vue 3 single-file component with TypeScript.
 
-        Args:
-            project_path: Path to the project directory
-            component_name: Name of the component (PascalCase)
-            composition_api: Use Composition API (recommended for Vue 3)
-            include_styles: Include scoped styles
-            include_tests: Create test file
+        Composition API only — `composition_api=False` returns an explicit
+        refusal instead of crashing.
+
+        ## Return Format
+
+        `{success, message, component_name, api_style, files_created,
+        features, import_statement, usage_example}`.
+
+        ## Examples
+
+        - generate_vue_component(project_path="D:/proj",
+          component_name="UserCard") -> writes `src/components/UserCard.vue`.
         """
         try:
             path = Path(project_path)
 
             if not _is_valid_component_name(component_name):
-                return {"success": False, "error": "Component name must be PascalCase"}
+                return {
+                    "success": False,
+                    "error": "Component name must be PascalCase",
+                    "message": "Component name must be PascalCase",
+                }
 
             component_dir = path / "src" / "components"
             component_dir.mkdir(parents=True, exist_ok=True)
@@ -281,6 +308,7 @@ describe('{component_name}', () => {{
 
             return {
                 "success": True,
+                "message": f"Generated Vue component {component_name}",
                 "component_name": component_name,
                 "api_style": "Composition API" if composition_api else "Options API",
                 "files_created": files_created,
@@ -297,17 +325,29 @@ describe('{component_name}', () => {{
             }
 
         except Exception as e:
-            logger.error(f"Error generating Vue component: {e}")
-            return {"success": False, "error": str(e)}
+            logger.exception(f"Error generating Vue component: {e}")
+            return {"success": False, "error": str(e), "message": f"Vue component failed: {e}"}
 
-    @mcp.tool()
-    def generate_custom_hook(project_path: str, hook_name: str, hook_type: str = "state") -> dict[str, Any]:
+    @mcp.tool(annotations=_MUTATING)
+    def generate_custom_hook(
+        project_path: Annotated[str, Field(description="Path to the project directory")],
+        hook_name: Annotated[str, Field(description="Name of the hook ('use' + PascalCase)")],
+        hook_type: Annotated[str, Field(description="Type of hook (state, effect, fetch, storage)")] = "state",
+    ) -> dict[str, Any]:
         """Generate a custom React hook with TypeScript.
 
-        Args:
-            project_path: Path to the project directory
-            hook_name: Name of the hook (should start with 'use')
-            hook_type: Type of hook (state, effect, fetch, storage)
+        Supported `hook_type` values are `state`, `effect`, `fetch`,
+        `storage` — anything else returns an explicit refusal.
+
+        ## Return Format
+
+        `{success, message, hook_name, hook_type, file_created,
+        import_statement, usage_example}`.
+
+        ## Examples
+
+        - generate_custom_hook(project_path="D:/proj", hook_name="useUserData",
+          hook_type="fetch") -> writes `src/hooks/useUserData.ts`.
         """
         try:
             path = Path(project_path)
@@ -431,6 +471,7 @@ export const {hook_name} = <T = any>(options: {hook_name.capitalize()}Options) =
 
             return {
                 "success": True,
+                "message": f"Generated hook {hook_name} ({hook_type})",
                 "hook_name": hook_name,
                 "hook_type": hook_type,
                 "file_created": f"src/hooks/{hook_name}.ts",
@@ -439,8 +480,8 @@ export const {hook_name} = <T = any>(options: {hook_name.capitalize()}Options) =
             }
 
         except Exception as e:
-            logger.error(f"Error generating custom hook: {e}")
-            return {"success": False, "error": str(e)}
+            logger.exception(f"Error generating custom hook: {e}")
+            return {"success": False, "error": str(e), "message": f"Hook generation failed: {e}"}
 
 
 def _is_valid_component_name(name: str) -> bool:
