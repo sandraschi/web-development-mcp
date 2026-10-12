@@ -7,6 +7,7 @@ chat proxy (honest 503 when no provider is running), diagnostics, and an
 orderly shutdown endpoint for the fleet launcher.
 """
 
+import asyncio
 import json
 import os
 import platform
@@ -273,7 +274,7 @@ async def llm_providers():
 @app.get("/api/llm/models")
 async def llm_models(provider: str = "ollama"):
     if provider == "ollama":
-        names, live = _ollama_models()
+        names, live = await asyncio.to_thread(_ollama_models)
         if live:
             return {"provider": provider, "models": names, "fallback": False}
         return {
@@ -335,7 +336,7 @@ async def llm_chat(payload: dict):
     if not query:
         return JSONResponse(status_code=400, content={"success": False, "message": "Empty query."})
     system_prompt = payload.get("system_prompt") or "You are a helpful web development assistant."
-    if not _tcp_open("127.0.0.1", 11434):
+    if not await asyncio.to_thread(_tcp_open, "127.0.0.1", 11434):
         al.warn("chat", "Chat requested with no local LLM running")
         return JSONResponse(
             status_code=503,
@@ -346,7 +347,7 @@ async def llm_chat(payload: dict):
             },
         )
     try:
-        return _chat_via_ollama(query, system_prompt, payload.get("model"))
+        return await asyncio.to_thread(_chat_via_ollama, query, system_prompt, payload.get("model"))
     except Exception as e:
         al.error("chat", f"Ollama chat failed: {e}")
         return JSONResponse(status_code=502, content={"success": False, "message": f"LLM request failed: {e}"})
@@ -357,10 +358,10 @@ async def llm_chat_stream(payload: dict):
     query = (payload.get("query") or "").strip()
     if not query:
         return JSONResponse(status_code=400, content={"success": False, "message": "Empty query."})
-    if not _tcp_open("127.0.0.1", 11434):
+    if not await asyncio.to_thread(_tcp_open, "127.0.0.1", 11434):
         return JSONResponse(status_code=503, content={"success": False, "message": "No local LLM detected."})
     system_prompt = payload.get("system_prompt") or "You are a helpful web development assistant."
-    names, live = _ollama_models()
+    names, live = await asyncio.to_thread(_ollama_models)
     chosen = payload.get("model") or (names[0] if names else _FALLBACK_MODELS[0])
 
     def _gen():
