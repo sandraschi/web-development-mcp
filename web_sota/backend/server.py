@@ -15,7 +15,7 @@ import sys
 import threading
 import time
 from collections import deque
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from uuid import uuid4
 
@@ -79,11 +79,9 @@ class ActivityLog:
     def query(self, limit=50, offset=0, level=None, kind=None, search=None, sort="desc", after_id=None):
         entries = list(self._entries)
         if after_id:
-            try:
+            with suppress(Exception):
                 at = float(after_id.split(".")[0])
                 entries = [e for e in entries if float(e["id"].split(".")[0]) > at]
-            except Exception:
-                pass
         if level:
             lo = {"DEBUG": 0, "INFO": 1, "WARNING": 2, "ERROR": 3}
             ml = lo.get(level.upper(), 1)
