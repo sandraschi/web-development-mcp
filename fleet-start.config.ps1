@@ -1,4 +1,4 @@
-﻿# Per-repo fleet start config for web-development-mcp
+# Per-repo fleet start config for web-development-mcp
 # Edit ports/backend target here - start.ps1 is fleet-standard.
 @{
     Name         = 'web-development-mcp'
@@ -11,6 +11,7 @@
         UvicornTarget = 'server:app'
         WorkDir       = 'web_sota\backend'
         SyncExtras    = @('dev')
+        SyncOnStart  = $true
         Env           = @{ WEB_PORT = '10853' }
     }
     Frontend = @{
